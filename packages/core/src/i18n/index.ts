@@ -38,6 +38,7 @@ export interface LocaleStrings {
   scVolume: string;
   scFullscreen: string;
   scMute: string;
+  settings: string;
   copyLog: string;
   logCopied: string;
 }
@@ -82,6 +83,7 @@ const zhCN: LocaleStrings = {
   scVolume: '音量 ±5',
   scFullscreen: '全屏切换',
   scMute: '静音切换',
+  settings: '设置',
   copyLog: '复制日志',
   logCopied: '已复制',
 };
@@ -126,6 +128,7 @@ const en: LocaleStrings = {
   scVolume: 'Volume ±5',
   scFullscreen: 'Toggle fullscreen',
   scMute: 'Toggle mute',
+  settings: 'Settings',
   copyLog: 'Copy log',
   logCopied: 'Copied',
 };

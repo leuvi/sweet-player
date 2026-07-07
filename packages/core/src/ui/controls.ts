@@ -1,9 +1,10 @@
 import { createEl } from '../utils/dom';
 import { formatTime } from '../utils/time';
 import { icons } from './icons';
-import { createPopupMenu, type PopupMenu } from './components/menu';
+import type { PopupMenu, MenuItem } from './components/menu';
 import { createProgressBar, type ProgressBar } from './components/progressBar';
 import { createVolumeControl, type VolumeControl } from './components/volume';
+import { createSettingsPanel, type SettingsPanel, type SettingsItem, type SettingsSection } from './components/settingsPanel';
 import type { I18n } from '../i18n';
 import type { AspectRatio, AudioTrackInfo, ControlName, QualityLevel } from '../types';
 
@@ -39,10 +40,12 @@ export interface Controls {
   volume: VolumeControl;
   qualityMenu: PopupMenu<QualityLevel>;
   audioMenu: PopupMenu<AudioTrackInfo>;
+  settingsPanel: SettingsPanel;
   updatePlayState(playing: boolean): void;
   updateTime(): void;
   updateRate(rate: number): void;
   updateFullscreen(fs: boolean): void;
+  updatePip(pip: boolean): void;
   updateRatio(ratio: AspectRatio): void;
   destroy(): void;
 }
@@ -65,7 +68,6 @@ export function createControls(ctx: ControlsContext): Controls {
 
   const row = createEl('div', { className: 'sp-controls', parent: bottomEl });
 
-  // visible 为 false 时创建游离元素（保持后续 update 逻辑零判空），不挂到控制栏
   const button = (html: string, title: string, onClick: () => void, disabled = false, visible = true) => {
     const btn = createEl('button', {
       className: 'sp-btn',
@@ -93,44 +95,7 @@ export function createControls(ctx: ControlsContext): Controls {
 
   createEl('div', { className: 'sp-controls-spacer', parent: row });
 
-  // 右侧：倍速 | 画质 | 比例 | 音轨 | 音量 | 画中画 | 全屏
-  const rateMenu = createPopupMenu<number>({
-    buttonHtml: '1x',
-    title: i18n.t('speed'),
-    emptyText: i18n.t('empty'),
-    onSelect: (item) => actions.setRate(item.value),
-  });
-  rateMenu.setItems(ctx.playbackRates.map((r) => ({ label: `${r}x`, value: r })));
-  rateMenu.setActive(video.playbackRate);
-  if (show('rate')) row.appendChild(rateMenu.el);
-
-  const qualityMenu = createPopupMenu<QualityLevel>({
-    buttonHtml: i18n.t('quality'),
-    title: i18n.t('quality'),
-    emptyText: i18n.t('empty'),
-    onSelect: (item) => actions.selectQuality(item.value),
-  });
-  if (show('quality')) row.appendChild(qualityMenu.el);
-
-  const ratioMenu = createPopupMenu<AspectRatio>({
-    buttonHtml: i18n.t('aspectRatio'),
-    title: i18n.t('aspectRatio'),
-    emptyText: i18n.t('empty'),
-    onSelect: (item) => actions.setAspectRatio(item.value),
-  });
-  ratioMenu.setItems(
-    ctx.aspectRatios.map((r) => ({ label: r === 'original' ? i18n.t('ratioOriginal') : r, value: r })),
-  );
-  ratioMenu.setActive('original');
-  if (show('ratio')) row.appendChild(ratioMenu.el);
-
-  const audioMenu = createPopupMenu<AudioTrackInfo>({
-    buttonHtml: icons.audio,
-    title: i18n.t('audioTrack'),
-    emptyText: i18n.t('empty'),
-    onSelect: (item) => actions.selectAudioTrack(item.value),
-  });
-  if (show('audioTrack')) row.appendChild(audioMenu.el);
+  // 右侧：音量 | 设置 | 全屏
 
   const volume = createVolumeControl({
     muteTitle: i18n.t('mute'),
@@ -139,19 +104,120 @@ export function createControls(ctx: ControlsContext): Controls {
   });
   if (show('volume')) row.appendChild(volume.el);
 
-  if (show('pip') && document.pictureInPictureEnabled) {
-    button(icons.pip, i18n.t('pip'), actions.togglePip);
-  }
+  // ---- 设置面板：倍速 / 画质 / 比例 / 音轨 / 画中画 ----
+  let currentRate = video.playbackRate;
+  let qualityItems: SettingsItem<QualityLevel>[] = [];
+  let activeQuality: QualityLevel | undefined;
+  let audioItems: SettingsItem<AudioTrackInfo>[] = [];
+  let activeAudio: AudioTrackInfo | undefined;
+
+  const settingsPanel = createSettingsPanel({
+    buttonTitle: i18n.t('settings'),
+    sections: [
+      ...(show('rate')
+        ? [{
+            key: 'rate',
+            label: i18n.t('speed'),
+            currentValue: `${currentRate}x`,
+            items: ctx.playbackRates.map((r) => ({ label: `${r}x`, value: r })),
+            activeValue: currentRate,
+            onSelect: (item: SettingsItem<number>) => actions.setRate(item.value),
+          }]
+        : []),
+      ...(show('quality')
+        ? [{
+            key: 'quality',
+            label: i18n.t('quality'),
+            currentValue: i18n.t('qualityAuto'),
+            items: qualityItems,
+            activeValue: activeQuality,
+            onSelect: (item: SettingsItem<QualityLevel>) => actions.selectQuality(item.value),
+          }]
+        : []),
+      ...(show('ratio')
+        ? [{
+            key: 'ratio',
+            label: i18n.t('aspectRatio'),
+            currentValue: i18n.t('ratioOriginal'),
+            items: ctx.aspectRatios.map((r) => ({
+              label: r === 'original' ? i18n.t('ratioOriginal') : r,
+              value: r,
+            })),
+            activeValue: 'original' as AspectRatio,
+            onSelect: (item: SettingsItem<AspectRatio>) => actions.setAspectRatio(item.value),
+          }]
+        : []),
+      ...(show('audioTrack')
+        ? [{
+            key: 'audioTrack',
+            label: i18n.t('audioTrack'),
+            currentValue: '-',
+            items: audioItems,
+            activeValue: activeAudio,
+            onSelect: (item: SettingsItem<AudioTrackInfo>) => actions.selectAudioTrack(item.value),
+          }]
+        : []),
+      ...(show('pip') && document.pictureInPictureEnabled
+        ? [{
+            key: 'pip',
+            label: i18n.t('pip'),
+            currentValue: '',
+            items: [],
+            activeValue: undefined as boolean | undefined,
+            onSelect: () => {},
+            toggle: {
+              checked: false,
+              onToggle: () => actions.togglePip(),
+            },
+          }]
+        : []),
+    ] as SettingsSection[],
+  });
+  if (show('settings')) row.appendChild(settingsPanel.el);
 
   const fsBtn = button(icons.fullscreen, i18n.t('fullscreen'), actions.toggleFullscreen, false, show('fullscreen'));
+
+  // ---- 兼容 qualityMenu / audioMenu 接口（player.ts 通过它们更新列表） ----
+  const qualityMenuAdapter: PopupMenu<QualityLevel> = {
+    el: document.createElement('div'),
+    setItems(items: MenuItem<QualityLevel>[]) {
+      qualityItems = items;
+      const cur = activeQuality ? items.find((i) => i.value === activeQuality)?.label : i18n.t('qualityAuto');
+      settingsPanel.updateSection('quality', { items, currentValue: cur ?? i18n.t('qualityAuto') });
+    },
+    setActive(value: QualityLevel) {
+      activeQuality = value;
+      const label = qualityItems.find((i) => i.value === value)?.label ?? i18n.t('qualityAuto');
+      settingsPanel.updateSection('quality', { activeValue: value, currentValue: label });
+    },
+    setButtonContent() {},
+    close() {},
+  };
+
+  const audioMenuAdapter: PopupMenu<AudioTrackInfo> = {
+    el: document.createElement('div'),
+    setItems(items: MenuItem<AudioTrackInfo>[]) {
+      audioItems = items;
+      const cur = activeAudio ? items.find((i) => i.value === activeAudio)?.label : '-';
+      settingsPanel.updateSection('audioTrack', { items, currentValue: cur ?? '-' });
+    },
+    setActive(value: AudioTrackInfo) {
+      activeAudio = value;
+      const label = audioItems.find((i) => i.value === value)?.label ?? '-';
+      settingsPanel.updateSection('audioTrack', { activeValue: value, currentValue: label });
+    },
+    setButtonContent() {},
+    close() {},
+  };
 
   return {
     topEl,
     bottomEl,
     progress,
     volume,
-    qualityMenu,
-    audioMenu,
+    qualityMenu: qualityMenuAdapter,
+    audioMenu: audioMenuAdapter,
+    settingsPanel,
     updatePlayState(playing) {
       playBtn.innerHTML = playing ? icons.pause : icons.play;
     },
@@ -160,16 +226,21 @@ export function createControls(ctx: ControlsContext): Controls {
       progress.update();
     },
     updateRate(rate) {
-      rateMenu.setButtonContent(`${rate}x`);
-      rateMenu.setActive(rate);
+      currentRate = rate;
+      settingsPanel.updateSection('rate', { activeValue: rate, currentValue: `${rate}x` });
     },
     updateFullscreen(fs) {
       fsBtn.innerHTML = fs ? icons.fullscreenExit : icons.fullscreen;
     },
+    updatePip(pip) {
+      settingsPanel.updateSection('pip', { toggle: { checked: pip } });
+    },
     updateRatio(ratio) {
-      ratioMenu.setActive(ratio);
+      const label = ratio === 'original' ? i18n.t('ratioOriginal') : ratio;
+      settingsPanel.updateSection('ratio', { activeValue: ratio, currentValue: label });
     },
     destroy() {
+      settingsPanel.destroy();
       topEl.remove();
       bottomEl.remove();
     },
