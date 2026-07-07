@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vanilla",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "playground-vanilla", "dev", "--port", "5183", "--strictPort"],
+      "port": 5183
+    },
+    {
+      "name": "react",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "playground-react", "dev", "--port", "5184", "--strictPort"],
+      "port": 5184
+    },
+    {
+      "name": "vue",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "playground-vue", "dev", "--port", "5185", "--strictPort"],
+      "port": 5185
+    }
+  ]
+}

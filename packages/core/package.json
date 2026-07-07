@@ -1,0 +1,44 @@
+{
+  "name": "@sweet-player/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic HLS video player with built-in UI",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/sweet-player.global.js",
+  "jsdelivr": "./dist/sweet-player.global.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "MIT",
+  "author": "leuvi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leuvi/sweet-player.git",
+    "directory": "packages/core"
+  },
+  "keywords": ["video", "player", "hls", "hls.js", "typescript", "react", "vue"],
+  "dependencies": {
+    "hls.js": "^1.5.18"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
+  }
+}

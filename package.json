@@ -1,0 +1,17 @@
+{
+  "name": "sweet-player-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "dev:vanilla": "pnpm --filter playground-vanilla dev",
+    "dev:react": "pnpm --filter playground-react dev",
+    "dev:vue": "pnpm --filter playground-vue dev"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}
