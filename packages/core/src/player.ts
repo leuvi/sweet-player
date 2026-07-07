@@ -546,10 +546,12 @@ export class SweetPlayer {
     // PiP 事件
     listen('enterpictureinpicture', () => {
       log('播放器', '进入画中画');
+      this.controls.updatePip(true);
       this.emitter.emit('pipchange', true);
     });
     listen('leavepictureinpicture', () => {
       log('播放器', '退出画中画');
+      this.controls.updatePip(false);
       this.emitter.emit('pipchange', false);
     });
 

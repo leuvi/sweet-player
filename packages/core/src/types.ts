@@ -36,6 +36,7 @@ export type ControlName =
   | 'volume'
   | 'pip'
   | 'fullscreen'
+  | 'settings'
   | 'title'
   | 'progress'
   | 'contextMenu';
