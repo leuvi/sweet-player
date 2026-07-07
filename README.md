@@ -86,7 +86,11 @@ new SweetPlayer({ ..., plugins: [myPlugin] });
 // 或运行时安装：const uninstall = player.use(myPlugin);
 ```
 
-### 接入 sweet-subtitle 字幕
+### 接入 [sweet-subtitle](https://github.com/leuvi/sweet-subtitle) 字幕
+
+```bash
+npm install sweet-subtitle
+```
 
 插件工厂持有字幕实例并对外暴露切换 API，运行时换字幕无需重建播放器：
 
