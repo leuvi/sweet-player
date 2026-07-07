@@ -1,5 +1,16 @@
 # @sweet-player/react
 
+## 0.4.0
+
+### Minor Changes
+
+- b94dd9c: Unified settings panel with toggle support for PiP
+
+### Patch Changes
+
+- Updated dependencies [b94dd9c]
+  - @sweet-player/core@0.4.0
+
 ## 0.3.0
 
 ### Minor Changes
