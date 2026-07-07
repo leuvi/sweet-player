@@ -1,5 +1,13 @@
 # @sweet-player/react
 
+## 0.2.1
+
+### Patch Changes
+
+- a98f4d6: Add README documentation for each package.
+- Updated dependencies [a98f4d6]
+  - @sweet-player/core@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
