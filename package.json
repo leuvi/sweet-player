@@ -7,7 +7,11 @@
     "build": "pnpm -r --filter \"./packages/*\" build",
     "dev:vanilla": "pnpm --filter playground-vanilla dev",
     "dev:react": "pnpm --filter playground-react dev",
-    "dev:vue": "pnpm --filter playground-vue dev"
+    "dev:vue": "pnpm --filter playground-vue dev",
+    "test": "pnpm --filter @sweet-player/core test",
+    "typecheck": "pnpm -r --filter \"./packages/*\" typecheck",
+    "changeset": "changeset",
+    "release": "changeset && git add .changeset && git commit -m \"chore: add changeset\" && git push"
   },
   "devDependencies": {
     "@changesets/cli": "^2.31.0",

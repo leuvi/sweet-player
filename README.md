@@ -87,22 +87,39 @@ new SweetPlayer({ ..., plugins: [myPlugin] });
 
 ### 接入 sweet-subtitle 字幕
 
+插件工厂持有字幕实例并对外暴露切换 API，运行时换字幕无需重建播放器：
+
 ```ts
 import { SweetSubtitle } from 'sweet-subtitle';
 import type { SweetPlayerPlugin } from '@sweet-player/core';
 
-function subtitlePlugin(src: string): SweetPlayerPlugin {
-  return {
+function createSubtitlePlugin(src?: string) {
+  let sub: SweetSubtitle | null = null;
+  const plugin: SweetPlayerPlugin = {
     name: 'sweet-subtitle',
     apply(player) {
-      const sub = new SweetSubtitle(player.video, { src });
-      return () => sub.destroy?.();
+      sub = new SweetSubtitle(player.video, src ? { src } : {});
+      return () => { sub?.destroy(); sub = null; };  // 播放器 destroy 时自动清理
     },
+  };
+  return {
+    plugin,
+    load: (url: string) => sub?.loadFromUrl(url),   // 切换字幕
+    show: () => sub?.show(),
+    hide: () => sub?.hide(),
+    setOffset: (s: number) => sub?.setOffset(s),
   };
 }
 
-new SweetPlayer({ ..., plugins: [subtitlePlugin('/subs/ep-01.ass')] });
+const subtitle = createSubtitlePlugin('/subs/ep-01.ass');
+const player = new SweetPlayer({ ..., plugins: [subtitle.plugin] });
+
+// 随时换字幕 / 关字幕，播放器不动
+await subtitle.load('/subs/ep-02.ass');
+subtitle.hide();
 ```
+
+不想用插件的话也可以完全独立管理：`new SweetSubtitle(player.video, ...)` 拿到实例自己持有，只需在销毁播放器前调用 `sub.destroy()`。
 
 ## 实例 API
 
