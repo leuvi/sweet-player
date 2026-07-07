@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.4.0
+
+### Minor Changes
+
+- b94dd9c: Unified settings panel with toggle support for PiP
+
 ## 0.3.0
 
 ### Minor Changes
