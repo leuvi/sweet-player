@@ -9,6 +9,7 @@ const player = new SweetPlayer({
   seekStep: 10,
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个
+  // hiddenControls: ['ratio', 'audioTrack'],  // 不显示的功能集合，默认全显示
   // 画质不传列表 → autoQuality 自动读取 hls levels（含"自动"档）
   onPrev: () => console.log('[playground] prev clicked'),
   onNext: () => console.log('[playground] next clicked'),

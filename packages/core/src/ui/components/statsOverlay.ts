@@ -1,5 +1,6 @@
 import { createEl } from '../../utils/dom';
 import { formatTime } from '../../utils/time';
+import { getLogText } from '../../logger';
 import type { MediaController } from '../../core/media';
 import type { I18n } from '../../i18n';
 
@@ -55,11 +56,28 @@ export function createStatsOverlay(
   function show(): void {
     if (root) return;
     root = createEl('div', { className: 'sp-stats', parent: container });
+    const header = createEl('div', { className: 'sp-stats-header', parent: root });
+    const copyBtn = createEl('button', {
+      className: 'sp-stats-copy',
+      text: i18n.t('copyLog'),
+      attrs: { type: 'button' },
+      parent: header,
+    });
+    copyBtn.addEventListener('click', () => {
+      const text = getLogText();
+      void navigator.clipboard.writeText(text || '(empty)').then(
+        () => {
+          copyBtn.textContent = i18n.t('logCopied');
+          setTimeout(() => { copyBtn.textContent = i18n.t('copyLog'); }, 1500);
+        },
+        () => {},
+      );
+    });
     const closeBtn = createEl('button', {
       className: 'sp-stats-close',
       text: '✕',
       attrs: { type: 'button', 'aria-label': i18n.t('closeStats') },
-      parent: root,
+      parent: header,
     });
     closeBtn.addEventListener('click', hide);
     createEl('dl', { className: 'sp-stats-body', parent: root });

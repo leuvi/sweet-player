@@ -26,6 +26,20 @@ export interface LocaleStrings {
   cancel: string;
   loadError: string;
   retry: string;
+  changelog: string;
+  videoInfo: string;
+  shortcuts: string;
+  close: string;
+  scKeySpace: string;
+  scKeyHold: string;
+  scPlayPause: string;
+  scSeek: string;
+  scLongSeek: string;
+  scVolume: string;
+  scFullscreen: string;
+  scMute: string;
+  copyLog: string;
+  logCopied: string;
 }
 
 const zhCN: LocaleStrings = {
@@ -56,6 +70,20 @@ const zhCN: LocaleStrings = {
   cancel: '取消',
   loadError: '视频加载失败',
   retry: '重试',
+  changelog: '更新记录',
+  videoInfo: '视频信息',
+  shortcuts: '快捷键',
+  close: '关闭',
+  scKeySpace: '空格',
+  scKeyHold: '← / → 长按',
+  scPlayPause: '播放 / 暂停',
+  scSeek: '快退 / 快进 {n} 秒',
+  scLongSeek: '阶梯累计快进快退，松开执行',
+  scVolume: '音量 ±5',
+  scFullscreen: '全屏切换',
+  scMute: '静音切换',
+  copyLog: '复制日志',
+  logCopied: '已复制',
 };
 
 const en: LocaleStrings = {
@@ -86,6 +114,20 @@ const en: LocaleStrings = {
   cancel: 'Cancel',
   loadError: 'Failed to load video',
   retry: 'Retry',
+  changelog: 'Changelog',
+  videoInfo: 'Video info',
+  shortcuts: 'Shortcuts',
+  close: 'Close',
+  scKeySpace: 'Space',
+  scKeyHold: 'Hold ← / →',
+  scPlayPause: 'Play / Pause',
+  scSeek: 'Rewind / forward {n}s',
+  scLongSeek: 'Accelerating seek, release to apply',
+  scVolume: 'Volume ±5',
+  scFullscreen: 'Toggle fullscreen',
+  scMute: 'Toggle mute',
+  copyLog: 'Copy log',
+  logCopied: 'Copied',
 };
 
 const locales: Record<string, LocaleStrings> = { 'zh-CN': zhCN, en };

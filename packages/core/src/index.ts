@@ -1,4 +1,5 @@
 export { SweetPlayer } from './player';
+export { VERSION } from './version';
 export { registerLocale } from './i18n';
 export type { LocaleStrings, LocaleName } from './i18n';
 export type {
@@ -8,6 +9,7 @@ export type {
   QualityLevel,
   AudioTrackInfo,
   AspectRatio,
+  ControlName,
   LongSeekOptions,
   PlayerEventMap,
   PlayerEventName,

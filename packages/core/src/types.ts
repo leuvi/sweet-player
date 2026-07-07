@@ -21,6 +21,25 @@ export interface LongSeekOptions {
   stepUpInterval?: number;
 }
 
+/** 可通过 hiddenControls 隐藏的 UI 功能名（只影响显示，不影响 API 与快捷键） */
+export type ControlName =
+  | 'prev'
+  | 'seekBack'
+  | 'play'
+  | 'seekForward'
+  | 'next'
+  | 'time'
+  | 'rate'
+  | 'quality'
+  | 'ratio'
+  | 'audioTrack'
+  | 'volume'
+  | 'pip'
+  | 'fullscreen'
+  | 'title'
+  | 'progress'
+  | 'contextMenu';
+
 /** 播放器插件：apply 在实例化末尾调用，可返回清理函数（destroy 时执行） */
 export interface SweetPlayerPlugin {
   name: string;
@@ -72,6 +91,8 @@ export interface SweetPlayerOptions {
   locale?: string;
   /** 覆盖部分 UI 文案 */
   localeStrings?: Record<string, string>;
+  /** 不显示的 UI 功能集合，默认全部显示（只影响显示，不影响 API 与快捷键） */
+  hiddenControls?: ControlName[];
   /** 插件列表，实例化末尾依次 apply */
   plugins?: SweetPlayerPlugin[];
   /** 透传给 hls.js 的配置 */

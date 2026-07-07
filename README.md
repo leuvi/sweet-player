@@ -37,6 +37,7 @@ const player = new SweetPlayer({
   persist: true,                 // 默认 true：记忆音量/静音/倍速
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
   locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
+  hiddenControls: ['ratio', 'audioTrack'],  // 不显示的功能，默认全显示
   onPrev: () => {},
   onNext: () => {},
   onQualityChange: (q) => {},
@@ -142,7 +143,7 @@ subtitle.hide();
 
 ### 鼠标
 
-单击画面播放/暂停 · 双击全屏 · 播放中 3 秒无操作控制栏自动隐藏
+单击画面播放/暂停 · 双击全屏 · 播放中 3 秒无操作控制栏自动隐藏 · 右键弹出自定义菜单（更新记录 / 视频信息 / 快捷键，原生菜单已屏蔽）
 
 ### 触屏
 
@@ -153,12 +154,24 @@ subtitle.hide();
 - **缓冲**：waiting/seek 未缓冲区时显示转圈（延迟 300ms 出现，避免闪烁）
 - **错误**：加载失败显示"视频加载失败 + 重试"蒙层，重试保留播放位置
 - **结束**：显示"重新播放"，有 `onNext` 时加"播放下一个"；`autoNext` 开启后倒计时自动连播（可取消）
-- **统计信息**：点击左上角标题 10 次（1.5 秒窗口内连击）弹出类 YouTube 统计蒙层（分辨率、缓冲、丢帧、hls.js 带宽估算、当前 level 等）
+- **统计信息**：右键菜单"视频信息"弹出类 YouTube 统计蒙层（分辨率、缓冲、丢帧、hls.js 带宽估算、当前 level 等）
+- **更新记录**：右键菜单显示当前版本号，点击跳转 npm 页面；代码里也可读 `SweetPlayer.version`
+- **快捷键说明**：右键菜单"快捷键"弹出全部键盘快捷键面板（seek 秒数随 `seekStep` 动态显示）
 
 ## 持久化
 
 - `persist`（默认开）：音量 / 静音 / 倍速记忆在 `localStorage`
 - `id`：传入后每 5 秒保存播放进度，下次打开自动续播；播到结尾自动清除断点
+
+## 隐藏功能
+
+`hiddenControls` 收集不显示的功能，默认全部显示（只影响 UI，不影响 API 与快捷键）：
+
+```ts
+new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
+```
+
+可选值：`prev` `seekBack` `play` `seekForward` `next` `time`（时间显示）`rate`（倍速）`quality`（画质）`ratio`（画面比例）`audioTrack`（音轨）`volume`（音量）`pip`（画中画）`fullscreen`（全屏）`title`（标题）`progress`（进度条）`contextMenu`（右键菜单，隐藏后恢复浏览器原生右键）
 
 ## 其他
 

@@ -7,6 +7,7 @@ export type {
   QualityLevel,
   AudioTrackInfo,
   AspectRatio,
+  ControlName,
   LongSeekOptions,
   PlayerEventMap,
 } from '@sweet-player/core';

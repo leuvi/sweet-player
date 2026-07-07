@@ -1,5 +1,6 @@
 import Hls from 'hls.js';
 import type { EventEmitter } from './events';
+import { log } from '../logger';
 
 function isHlsSource(src: string): boolean {
   return /\.m3u8($|\?)/i.test(src);
@@ -43,11 +44,16 @@ export class MediaController {
   load(src: string): void {
     this.detachHls();
     this.currentSrc = src;
+    log('播放器', `加载源: ${src}`);
 
     if (isHlsSource(src)) {
       if (Hls.isSupported()) {
         this.hls = new Hls(this.hlsConfig);
+        this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+          log('hls事件', '媒体成功附加到播放器');
+        });
         this.hls.on(Hls.Events.ERROR, (_event, data) => {
+          log('hls事件', `${data.fatal ? '致命' : ''}错误: ${data.type} - ${data.details}`);
           if (data.fatal) {
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
@@ -63,7 +69,16 @@ export class MediaController {
           }
         });
         this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          log('hls事件', '播放清单解析完毕');
           this.notifyTracks();
+        });
+        this.hls.on(Hls.Events.BUFFER_CREATED, () => {
+          log('hls事件', '缓冲区创建');
+        });
+        this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+          const level = this.hls?.levels[data.level];
+          const label = level?.height ? `${level.height}P` : `Level ${data.level}`;
+          log('hls事件', `画质档位切换: ${label}`);
         });
         this.hls.loadSource(src);
         this.hls.attachMedia(this.video);

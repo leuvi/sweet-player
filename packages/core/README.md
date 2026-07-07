@@ -58,7 +58,8 @@ player.destroy();
 - **i18n**：内置 zh-CN/en，支持自定义语言
 - **插件机制**：`plugins` 选项或 `player.use(plugin)` 运行时安装
 - **主题定制**：CSS 变量覆盖，如 `--sp-accent`
-- **统计信息**：标题 10 连击弹出 YouTube 风格统计面板
+- **右键菜单**：屏蔽原生菜单，内置"更新记录（当前版本，跳转 npm）"、"视频信息（YouTube 风格统计面板）"、"快捷键（键位说明面板）"
+- **按需隐藏**：`hiddenControls: ['ratio', 'audioTrack', ...]` 收集不显示的功能，默认全显示（只影响 UI，不影响 API 与快捷键）
 
 ## 画质 / 音轨
 

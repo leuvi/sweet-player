@@ -5,7 +5,7 @@ import { createPopupMenu, type PopupMenu } from './components/menu';
 import { createProgressBar, type ProgressBar } from './components/progressBar';
 import { createVolumeControl, type VolumeControl } from './components/volume';
 import type { I18n } from '../i18n';
-import type { AspectRatio, AudioTrackInfo, QualityLevel } from '../types';
+import type { AspectRatio, AudioTrackInfo, ControlName, QualityLevel } from '../types';
 
 export interface ControlsContext {
   video: HTMLVideoElement;
@@ -14,6 +14,8 @@ export interface ControlsContext {
   playbackRates: number[];
   aspectRatios: AspectRatio[];
   seekStep: number;
+  /** 不渲染的功能集合 */
+  hidden: Set<ControlName>;
   actions: {
     togglePlay(): void;
     seekBy(delta: number): void;
@@ -27,7 +29,6 @@ export interface ControlsContext {
     selectAudioTrack(t: AudioTrackInfo): void;
     onPrev?: () => void;
     onNext?: () => void;
-    onTitleClick(): void;
   };
 }
 
@@ -47,12 +48,12 @@ export interface Controls {
 }
 
 export function createControls(ctx: ControlsContext): Controls {
-  const { video, actions, i18n } = ctx;
+  const { video, actions, i18n, hidden } = ctx;
+  const show = (name: ControlName) => !hidden.has(name);
 
   // ---- 顶部：标题 ----
   const topEl = createEl('div', { className: 'sp-top' });
-  const titleEl = createEl('div', { className: 'sp-title', text: ctx.title, parent: topEl });
-  titleEl.addEventListener('click', actions.onTitleClick);
+  if (show('title')) createEl('div', { className: 'sp-title', text: ctx.title, parent: topEl });
 
   // ---- 底部容器 ----
   const bottomEl = createEl('div', { className: 'sp-bottom' });
@@ -60,16 +61,17 @@ export function createControls(ctx: ControlsContext): Controls {
   const progress = createProgressBar(video, (t) => {
     video.currentTime = t;
   });
-  bottomEl.appendChild(progress.el);
+  if (show('progress')) bottomEl.appendChild(progress.el);
 
   const row = createEl('div', { className: 'sp-controls', parent: bottomEl });
 
-  const button = (html: string, title: string, onClick: () => void, disabled = false) => {
+  // visible 为 false 时创建游离元素（保持后续 update 逻辑零判空），不挂到控制栏
+  const button = (html: string, title: string, onClick: () => void, disabled = false, visible = true) => {
     const btn = createEl('button', {
       className: 'sp-btn',
       html,
       attrs: { type: 'button', title, 'aria-label': title },
-      parent: row,
+      parent: visible ? row : undefined,
     });
     btn.disabled = disabled;
     btn.addEventListener('click', onClick);
@@ -77,13 +79,17 @@ export function createControls(ctx: ControlsContext): Controls {
   };
 
   // 左侧：上一个 | 快退 | 播放 | 快进 | 下一个 | 时间
-  button(icons.prev, i18n.t('prev'), () => actions.onPrev?.(), !actions.onPrev);
-  button(icons.seekBack, i18n.t('seekBack', { n: ctx.seekStep }), () => actions.seekBy(-ctx.seekStep));
-  const playBtn = button(icons.play, i18n.t('playPause'), actions.togglePlay);
-  button(icons.seekForward, i18n.t('seekForward', { n: ctx.seekStep }), () => actions.seekBy(ctx.seekStep));
-  button(icons.next, i18n.t('next'), () => actions.onNext?.(), !actions.onNext);
+  button(icons.prev, i18n.t('prev'), () => actions.onPrev?.(), !actions.onPrev, show('prev'));
+  button(icons.seekBack, i18n.t('seekBack', { n: ctx.seekStep }), () => actions.seekBy(-ctx.seekStep), false, show('seekBack'));
+  const playBtn = button(icons.play, i18n.t('playPause'), actions.togglePlay, false, show('play'));
+  button(icons.seekForward, i18n.t('seekForward', { n: ctx.seekStep }), () => actions.seekBy(ctx.seekStep), false, show('seekForward'));
+  button(icons.next, i18n.t('next'), () => actions.onNext?.(), !actions.onNext, show('next'));
 
-  const timeEl = createEl('span', { className: 'sp-time', text: '0:00 / 0:00', parent: row });
+  const timeEl = createEl('span', {
+    className: 'sp-time',
+    text: '0:00 / 0:00',
+    parent: show('time') ? row : undefined,
+  });
 
   createEl('div', { className: 'sp-controls-spacer', parent: row });
 
@@ -96,7 +102,7 @@ export function createControls(ctx: ControlsContext): Controls {
   });
   rateMenu.setItems(ctx.playbackRates.map((r) => ({ label: `${r}x`, value: r })));
   rateMenu.setActive(video.playbackRate);
-  row.appendChild(rateMenu.el);
+  if (show('rate')) row.appendChild(rateMenu.el);
 
   const qualityMenu = createPopupMenu<QualityLevel>({
     buttonHtml: i18n.t('quality'),
@@ -104,7 +110,7 @@ export function createControls(ctx: ControlsContext): Controls {
     emptyText: i18n.t('empty'),
     onSelect: (item) => actions.selectQuality(item.value),
   });
-  row.appendChild(qualityMenu.el);
+  if (show('quality')) row.appendChild(qualityMenu.el);
 
   const ratioMenu = createPopupMenu<AspectRatio>({
     buttonHtml: i18n.t('aspectRatio'),
@@ -116,7 +122,7 @@ export function createControls(ctx: ControlsContext): Controls {
     ctx.aspectRatios.map((r) => ({ label: r === 'original' ? i18n.t('ratioOriginal') : r, value: r })),
   );
   ratioMenu.setActive('original');
-  row.appendChild(ratioMenu.el);
+  if (show('ratio')) row.appendChild(ratioMenu.el);
 
   const audioMenu = createPopupMenu<AudioTrackInfo>({
     buttonHtml: icons.audio,
@@ -124,20 +130,20 @@ export function createControls(ctx: ControlsContext): Controls {
     emptyText: i18n.t('empty'),
     onSelect: (item) => actions.selectAudioTrack(item.value),
   });
-  row.appendChild(audioMenu.el);
+  if (show('audioTrack')) row.appendChild(audioMenu.el);
 
   const volume = createVolumeControl({
     muteTitle: i18n.t('mute'),
     onVolumeChange: actions.setVolume,
     onToggleMute: actions.toggleMute,
   });
-  row.appendChild(volume.el);
+  if (show('volume')) row.appendChild(volume.el);
 
-  if (document.pictureInPictureEnabled) {
+  if (show('pip') && document.pictureInPictureEnabled) {
     button(icons.pip, i18n.t('pip'), actions.togglePip);
   }
 
-  const fsBtn = button(icons.fullscreen, i18n.t('fullscreen'), actions.toggleFullscreen);
+  const fsBtn = button(icons.fullscreen, i18n.t('fullscreen'), actions.toggleFullscreen, false, show('fullscreen'));
 
   return {
     topEl,

@@ -5,6 +5,8 @@ import { GestureController } from './core/gestures';
 import { isFullscreen, onFullscreenChange, toggleFullscreen } from './core/fullscreen';
 import { createControls, type Controls } from './ui/controls';
 import { createOsd, type Osd } from './ui/components/osd';
+import { createContextMenu, type ContextMenu } from './ui/components/contextMenu';
+import { createShortcutsOverlay, type ShortcutsOverlay } from './ui/components/shortcutsOverlay';
 import { createStatsOverlay, type StatsOverlay } from './ui/components/statsOverlay';
 import { createStateOverlay, type StateOverlay } from './ui/components/stateOverlay';
 import { I18n } from './i18n';
@@ -12,10 +14,13 @@ import { createEl } from './utils/dom';
 import { clamp, formatTime } from './utils/time';
 import { injectStyle } from './utils/injectStyle';
 import { clearProgress, loadPrefs, loadProgress, savePrefs, saveProgress } from './utils/storage';
+import { VERSION } from './version';
+import { log } from './logger';
 import css from './styles/player.css';
 import type {
   AspectRatio,
   AudioTrackInfo,
+  ControlName,
   PlayerEventMap,
   QualityLevel,
   SweetPlayerOptions,
@@ -28,14 +33,15 @@ const DEFAULT_LONG_SEEK_STEPS = [10, 30, 60];
 const DEFAULT_STEP_UP_INTERVAL = 2000;
 const DEFAULT_AUTO_NEXT_SECONDS = 5;
 const CONTROLS_HIDE_DELAY = 3000;
-const TITLE_CLICK_COUNT = 10;
-const TITLE_CLICK_WINDOW = 1500;
 const SINGLE_CLICK_DELAY = 250;
+const NPM_URL = 'https://www.npmjs.com/package/@sweet-player/core';
 const PROGRESS_SAVE_INTERVAL = 5000;
 /** 距结尾小于该秒数视为看完，清除断点 */
 const PROGRESS_END_GUARD = 10;
 
 export class SweetPlayer {
+  static readonly version = VERSION;
+
   readonly container: HTMLElement;
   readonly video: HTMLVideoElement;
 
@@ -46,15 +52,15 @@ export class SweetPlayer {
   private controls: Controls;
   private osd: Osd;
   private stats: StatsOverlay;
+  private shortcutsPanel: ShortcutsOverlay;
   private state: StateOverlay;
+  private contextMenu: ContextMenu | null = null;
   private i18n: I18n;
   private options: SweetPlayerOptions;
 
   private hideTimer: ReturnType<typeof setTimeout> | null = null;
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
   private progressTimer: ReturnType<typeof setInterval> | null = null;
-  private titleClicks = 0;
-  private lastTitleClick = 0;
   private currentRatio: AspectRatio = 'original';
   /** 画质/音轨菜单当前是否由 hls.js 自动接管（业务 setQualities 会关闭） */
   private hlsManagedQuality = false;
@@ -101,9 +107,28 @@ export class SweetPlayer {
         autoQuality && !options.audioTracks?.length ? (tracks) => this.applyHlsAudioTracks(tracks) : undefined,
     });
 
+    const hidden = new Set<ControlName>(options.hiddenControls ?? []);
+
     this.osd = createOsd();
     this.stats = createStatsOverlay(this.container, this.video, this.media, this.i18n);
+    this.shortcutsPanel = createShortcutsOverlay(this.container, this.i18n, options.seekStep ?? 10);
     this.state = createStateOverlay(this.i18n);
+    if (!hidden.has('contextMenu')) {
+      this.contextMenu = createContextMenu(this.container, [
+        {
+          label: `${this.i18n.t('changelog')}: v${VERSION}`,
+          onClick: () => window.open(NPM_URL, '_blank', 'noopener'),
+        },
+        {
+          label: this.i18n.t('videoInfo'),
+          onClick: () => this.stats.toggle(),
+        },
+        {
+          label: this.i18n.t('shortcuts'),
+          onClick: () => this.shortcutsPanel.toggle(),
+        },
+      ]);
+    }
 
     this.controls = createControls({
       video: this.video,
@@ -112,6 +137,7 @@ export class SweetPlayer {
       playbackRates: options.playbackRates ?? DEFAULT_RATES,
       aspectRatios: options.aspectRatios ?? DEFAULT_RATIOS,
       seekStep: options.seekStep ?? 10,
+      hidden,
       actions: {
         togglePlay: () => this.toggle(),
         seekBy: (d) => this.seekBy(d),
@@ -125,7 +151,6 @@ export class SweetPlayer {
         selectAudioTrack: (t) => this.handleAudioTrackSelect(t),
         onPrev: options.onPrev,
         onNext: options.onNext,
-        onTitleClick: () => this.handleTitleClick(),
       },
     });
     this.container.appendChild(this.controls.topEl);
@@ -186,6 +211,7 @@ export class SweetPlayer {
     this.bindActivityTracking();
     this.disposers.push(
       onFullscreenChange(this.container, (fs) => {
+        log('播放器', fs ? '进入全屏' : '退出全屏');
         this.controls.updateFullscreen(fs);
         this.emitter.emit('fullscreenchange', fs);
       }),
@@ -233,6 +259,7 @@ export class SweetPlayer {
   }
 
   setRate(rate: number): void {
+    log('播放器', `倍速切换: ${rate}x`);
     this.video.playbackRate = rate;
   }
 
@@ -333,7 +360,9 @@ export class SweetPlayer {
     this.keyboard.destroy();
     this.gestures.destroy();
     this.stats.destroy();
+    this.shortcutsPanel.destroy();
     this.state.destroy();
+    this.contextMenu?.destroy();
     this.controls.destroy();
     this.disposers.forEach((d) => d());
     if (this.hideTimer) clearTimeout(this.hideTimer);
@@ -360,6 +389,7 @@ export class SweetPlayer {
   }
 
   private handleQualitySelect(quality: QualityLevel): void {
+    log('播放器', `切换画质: ${quality.label}`);
     this.controls.qualityMenu.setActive(quality);
     if (this.hlsManagedQuality && typeof quality.value === 'number') {
       // hls 自动接入的档位：直接切 level（-1 为自动）
@@ -374,6 +404,7 @@ export class SweetPlayer {
   }
 
   private handleAudioTrackSelect(track: AudioTrackInfo): void {
+    log('播放器', `切换音轨: ${track.label}`);
     this.controls.audioMenu.setActive(track);
     if (this.hlsManagedAudio && typeof track.value === 'number') {
       this.media.setAudioTrack(track.value);
@@ -420,16 +451,6 @@ export class SweetPlayer {
 
   // ---------- 内部：交互 ----------
 
-  private handleTitleClick(): void {
-    const now = Date.now();
-    this.titleClicks = now - this.lastTitleClick <= TITLE_CLICK_WINDOW ? this.titleClicks + 1 : 1;
-    this.lastTitleClick = now;
-    if (this.titleClicks >= TITLE_CLICK_COUNT) {
-      this.titleClicks = 0;
-      this.stats.toggle();
-    }
-  }
-
   private bindMediaEvents(): void {
     const v = this.video;
     const listen = (event: string, fn: () => void) => {
@@ -438,6 +459,7 @@ export class SweetPlayer {
     };
 
     listen('loadedmetadata', () => {
+      log('原生事件', `获取元数据 (${v.videoWidth}x${v.videoHeight})`);
       this.controls.updateTime();
       this.emitter.emit('ready', undefined);
     });
@@ -453,6 +475,7 @@ export class SweetPlayer {
       this.emitter.emit('pause', undefined);
     });
     listen('ended', () => {
+      log('原生事件', '播放结束');
       this.saveProgressNow();
       this.showControls();
       const onNext = this.options.onNext;
@@ -484,18 +507,36 @@ export class SweetPlayer {
     });
 
     // Loading 状态
-    listen('waiting', () => this.state.showLoading());
-    listen('stalled', () => this.state.showLoading());
-    listen('seeking', () => this.state.showLoading());
-    listen('canplay', () => this.state.hideLoading());
+    listen('waiting', () => {
+      log('原生事件', '等待缓冲中');
+      this.state.showLoading();
+    });
+    listen('stalled', () => {
+      log('原生事件', '数据加载停滞');
+      this.state.showLoading();
+    });
+    listen('seeking', () => {
+      log('原生事件', '开始跳转');
+      this.state.showLoading();
+    });
+    listen('canplay', () => {
+      log('原生事件', '准备好开始播放');
+      this.state.hideLoading();
+    });
     listen('playing', () => {
       this.state.hideLoading();
       this.state.hideError();
     });
-    listen('seeked', () => this.state.hideLoading());
+    listen('seeked', () => {
+      log('原生事件', '跳转完成');
+      this.state.hideLoading();
+    });
 
     // 错误：video 元素错误 + hls 致命错误统一走错误蒙层
-    listen('error', () => this.showErrorState({ type: 'media', detail: v.error }));
+    listen('error', () => {
+      log('原生事件', `播放错误: ${v.error?.message ?? '未知错误'}`);
+      this.showErrorState({ type: 'media', detail: v.error });
+    });
     this.disposers.push(
       this.emitter.on('error', (payload) => {
         if (payload.type.startsWith('hls-')) this.showErrorStateUi();
@@ -503,8 +544,14 @@ export class SweetPlayer {
     );
 
     // PiP 事件
-    listen('enterpictureinpicture', () => this.emitter.emit('pipchange', true));
-    listen('leavepictureinpicture', () => this.emitter.emit('pipchange', false));
+    listen('enterpictureinpicture', () => {
+      log('播放器', '进入画中画');
+      this.emitter.emit('pipchange', true);
+    });
+    listen('leavepictureinpicture', () => {
+      log('播放器', '退出画中画');
+      this.emitter.emit('pipchange', false);
+    });
 
     // 桌面端：单击画面播放/暂停，双击全屏（触屏交给 GestureController）
     const onVideoClick = (e: MouseEvent) => {
