@@ -26,6 +26,7 @@ import type {
   SweetPlayerOptions,
   SweetPlayerPlugin,
 } from './types';
+import type { SettingsSection } from './ui/components/settingsPanel';
 
 const DEFAULT_RATES = [0.5, 1, 1.5, 2];
 const DEFAULT_RATIOS: AspectRatio[] = ['original', '21:9', '16:9', '4:3'];
@@ -341,6 +342,11 @@ export class SweetPlayer {
     const dispose = typeof cleanup === 'function' ? cleanup : () => {};
     this.pluginCleanups.push(dispose);
     return dispose;
+  }
+
+  /** 插件动态注册设置行，返回移除函数（destroy 时随控件整体清理） */
+  addSettingsRow(section: SettingsSection): () => void {
+    return this.controls.settingsPanel.addSection(section);
   }
 
   on<K extends keyof PlayerEventMap>(event: K, fn: (payload: PlayerEventMap[K]) => void): () => void {

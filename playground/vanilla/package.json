@@ -8,7 +8,8 @@
     "build": "echo skip"
   },
   "dependencies": {
-    "@sweet-player/core": "workspace:*"
+    "@sweet-player/core": "workspace:*",
+    "sweet-subtitle": "^1.1.0"
   },
   "devDependencies": {
     "typescript": "^5.7.2",

@@ -8,11 +8,24 @@
     body { margin: 0; background: #1a1a1a; color: #eee; font-family: sans-serif; }
     .wrap { max-width: 960px; margin: 24px auto; padding: 0 16px; }
     #player { width: 100%; aspect-ratio: 16 / 9; }
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+    .toolbar button {
+      padding: 6px 16px; border: 1px solid #444; border-radius: 4px;
+      background: #2a2a2a; color: #eee; font-size: 13px; cursor: pointer;
+    }
+    .toolbar button:hover { background: #333; }
+    .toolbar input[type=file] { display: none; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <h2>Sweet Player — 原生 JS</h2>
+    <div class="toolbar">
+      <button onclick="document.getElementById('fileInput').click()">选择本地视频</button>
+      <input type="file" id="fileInput" accept="video/*" />
+      <button onclick="document.getElementById('subInput').click()">选择本地字幕</button>
+      <input type="file" id="subInput" accept=".vtt,.srt,.ass,.ssa,.sub,.ttml,.dfxp" />
+    </div>
     <div id="player"></div>
   </div>
   <script type="module" src="/src/main.ts"></script>

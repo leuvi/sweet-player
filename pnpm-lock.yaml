@@ -105,6 +105,9 @@ importers:
       '@sweet-player/core':
         specifier: workspace:*
         version: link:../../packages/core
+      sweet-subtitle:
+        specifier: ^1.1.0
+        version: 1.1.0(react@19.2.7)(vue@3.5.39(typescript@5.9.3))
     devDependencies:
       typescript:
         specifier: ^5.7.2
@@ -1523,6 +1526,20 @@ packages:
     resolution: {integrity: sha512-DhuTmvZWux4H1UOnWMB3sk0sbaCVOoQZjv8u1rDoTV0HTdGem9hkAZtl4JZy8P2z4Bg0nT+YMeOFyVr4zcG5Tw==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
+
+  sweet-subtitle@1.1.0:
+    resolution: {integrity: sha512-7HtWGqnLmX5UbLmfCmkZXw8Kbr1TGr1N5v4sSPoiwL7gorz5Of/u/P4zrD68dOeJNzozPmQmz/qReTqDTLdpCg==}
+    peerDependencies:
+      '@angular/core': '>=16.0.0'
+      react: '>=18'
+      vue: '>=3.3.0'
+    peerDependenciesMeta:
+      '@angular/core':
+        optional: true
+      react:
+        optional: true
+      vue:
+        optional: true
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -3061,6 +3078,11 @@ snapshots:
       pirates: 4.0.7
       tinyglobby: 0.2.17
       ts-interface-checker: 0.1.13
+
+  sweet-subtitle@1.1.0(react@19.2.7)(vue@3.5.39(typescript@5.9.3)):
+    optionalDependencies:
+      react: 19.2.7
+      vue: 3.5.39(typescript@5.9.3)
 
   symbol-tree@3.2.4: {}
 
