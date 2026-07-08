@@ -712,6 +712,69 @@
   transform: translateX(13px);
 }
 
+/* ---------- 设置面板：滑块行（range slider） ---------- */
+.sp-settings-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sp-settings-slider-row .sp-settings-label {
+  flex-shrink: 0;
+}
+
+.sp-slider-input {
+  -webkit-appearance: none;
+  appearance: none;
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  outline: none;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.sp-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.sp-slider-input::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.sp-slider-input::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.15);
+}
+
+.sp-slider-input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  cursor: grab;
+}
+
+.sp-slider-input::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sp-slider-input:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
 /* ---------- 音量 ---------- */
 .sp-volume {
   display: flex;

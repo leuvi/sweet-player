@@ -18,6 +18,14 @@ export interface SettingsSection<T = unknown> {
     checked: boolean;
     onToggle: () => void;
   };
+  /** 存在时该行渲染为行内滑块（一条线 + 圆块拖动），不走子菜单 */
+  slider?: {
+    min: number;
+    max: number;
+    step: number;
+    value: number;
+    onChange: (value: number) => void;
+  };
 }
 
 export interface SettingsPanel {
@@ -27,7 +35,10 @@ export interface SettingsPanel {
     currentValue?: string;
     activeValue?: unknown;
     toggle?: { checked: boolean; onToggle?: () => void };
+    slider?: { min?: number; max?: number; step?: number; value?: number; onChange?: (value: number) => void };
   }): void;
+  /** 动态添加一行（插件注册），返回移除函数 */
+  addSection(section: SettingsSection): () => void;
   close(): void;
   destroy(): void;
 }
@@ -78,6 +89,35 @@ export function createSettingsPanel(opts: {
             handler(e);
           }
         });
+        continue;
+      }
+      if (sec.slider) {
+        const row = createEl('div', {
+          className: 'sp-settings-row sp-settings-slider-row',
+          attrs: { 'data-key': sec.key },
+          parent: mainView,
+        });
+        createEl('span', { className: 'sp-settings-label', text: sec.label, parent: row });
+        const input = createEl('input', {
+          className: 'sp-slider-input',
+          attrs: {
+            type: 'range',
+            min: String(sec.slider.min),
+            max: String(sec.slider.max),
+            step: String(sec.slider.step),
+            value: String(sec.slider.value),
+            'aria-label': sec.label,
+          },
+          parent: row,
+        });
+        input.addEventListener('input', (e) => {
+          e.stopPropagation();
+          const v = Number((e.target as HTMLInputElement).value);
+          sec.slider!.value = v; // 同步内部状态，重新渲染时保持一致
+          sec.slider!.onChange(v);
+        });
+        // 阻止点击 slider 导致面板关闭
+        input.addEventListener('click', (e) => e.stopPropagation());
         continue;
       }
       if (sec.items.length === 0) continue;
@@ -183,13 +223,41 @@ export function createSettingsPanel(opts: {
           sec.toggle = { checked: patch.toggle.checked, onToggle: patch.toggle.onToggle ?? (() => {}) };
         }
       }
-      if (sec.toggle) {
-        // toggle 行只出现在主视图，无需渲染子视图
+      if (patch.slider) {
+        if (sec.slider) {
+          if (patch.slider.min !== undefined) sec.slider.min = patch.slider.min;
+          if (patch.slider.max !== undefined) sec.slider.max = patch.slider.max;
+          if (patch.slider.step !== undefined) sec.slider.step = patch.slider.step;
+          if (patch.slider.value !== undefined) sec.slider.value = patch.slider.value;
+          if (patch.slider.onChange) sec.slider.onChange = patch.slider.onChange;
+        } else {
+          sec.slider = {
+            min: patch.slider.min ?? 0,
+            max: patch.slider.max ?? 100,
+            step: patch.slider.step ?? 1,
+            value: patch.slider.value ?? 0,
+            onChange: patch.slider.onChange ?? (() => {}),
+          };
+        }
+      }
+      if (sec.toggle || sec.slider) {
+        // 行内行只出现在主视图，无需渲染子视图
         if (!activeSub) renderMain();
         return;
       }
       if (activeSub === key) renderSub(key);
       if (!activeSub) renderMain();
+    },
+    addSection(section) {
+      // 避免重复 key
+      if (!sections.find((s) => s.key === section.key)) {
+        sections = [...sections, section];
+        if (!activeSub) renderMain();
+      }
+      return () => {
+        sections = sections.filter((s) => s.key !== section.key);
+        if (!activeSub) renderMain();
+      };
     },
     close,
     destroy() {

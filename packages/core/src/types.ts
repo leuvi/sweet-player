@@ -1,3 +1,5 @@
+import type { SettingsSection } from './ui/components/settingsPanel';
+
 export interface QualityLevel {
   /** 显示名称，如 "1080P" */
   label: string;
@@ -52,6 +54,8 @@ export interface SweetPlayerLike {
   container: HTMLElement;
   video: HTMLVideoElement;
   on<K extends keyof PlayerEventMap>(event: K, fn: (payload: PlayerEventMap[K]) => void): () => void;
+  /** 插件动态注册设置行，返回移除函数（destroy 时自动清理） */
+  addSettingsRow(section: SettingsSection): () => void;
 }
 
 export interface SweetPlayerOptions {
