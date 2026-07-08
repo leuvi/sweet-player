@@ -2,6 +2,7 @@ export { SweetPlayer } from './player';
 export { VERSION } from './version';
 export { registerLocale } from './i18n';
 export type { LocaleStrings, LocaleName } from './i18n';
+export type { SettingsSection, SettingsItem } from './ui/components/settingsPanel';
 export type {
   SweetPlayerOptions,
   SweetPlayerPlugin,

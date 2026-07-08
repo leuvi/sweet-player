@@ -14,6 +14,7 @@ import { createEl } from './utils/dom';
 import { clamp, formatTime } from './utils/time';
 import { injectStyle } from './utils/injectStyle';
 import { clearProgress, loadPrefs, loadProgress, savePrefs, saveProgress } from './utils/storage';
+import { captureScreenshot } from './utils/screenshot';
 import { VERSION } from './version';
 import { log } from './logger';
 import css from './styles/player.css';
@@ -116,6 +117,10 @@ export class SweetPlayer {
     this.state = createStateOverlay(this.i18n);
     if (!hidden.has('contextMenu')) {
       this.contextMenu = createContextMenu(this.container, [
+        {
+          label: this.i18n.t('screenshot'),
+          onClick: () => this.screenshot(),
+        },
         {
           label: `${this.i18n.t('changelog')}: v${VERSION}`,
           onClick: () => window.open(NPM_URL, '_blank', 'noopener'),
@@ -322,6 +327,18 @@ export class SweetPlayer {
       }
     } catch {
       /* 不支持或被拒绝 */
+    }
+  }
+
+  /** 截取当前帧：优先复制到剪贴板，否则下载 webp；跨域未授信时提示失败 */
+  async screenshot(): Promise<void> {
+    const base = (this.options.title || 'screenshot').replace(/[\\/:*?"<>|]/g, '_');
+    try {
+      const result = await captureScreenshot(this.video, `${base}-${Date.now()}.webp`);
+      this.osd.flash(this.i18n.t(result === 'clipboard' ? 'screenshotCopied' : 'screenshotSaved'));
+    } catch (err) {
+      log('截图', `失败: ${String(err)}`);
+      this.osd.flash(this.i18n.t('screenshotFailed'));
     }
   }
 
