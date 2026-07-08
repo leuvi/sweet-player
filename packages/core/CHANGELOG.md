@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.6.0
+
+### Minor Changes
+
+- 2586479: Screenshot: capture the current video frame from the context menu or `screenshot()` — copies to clipboard (PNG) when supported, otherwise downloads a webp
+
 ## 0.5.0
 
 ### Minor Changes

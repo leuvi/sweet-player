@@ -1,5 +1,16 @@
 # @sweet-player/react
 
+## 0.6.0
+
+### Minor Changes
+
+- 2586479: Screenshot: capture the current video frame from the context menu or `screenshot()` — copies to clipboard (PNG) when supported, otherwise downloads a webp
+
+### Patch Changes
+
+- Updated dependencies [2586479]
+  - @sweet-player/core@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
