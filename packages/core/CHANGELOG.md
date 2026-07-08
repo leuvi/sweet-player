@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.5.0
+
+### Minor Changes
+
+- 1897cac: Settings panel: toggle row for PiP, slider row type, addSettingsRow API for plugin UI integration
+
 ## 0.4.0
 
 ### Minor Changes
