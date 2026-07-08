@@ -39,6 +39,10 @@ export interface LocaleStrings {
   scFullscreen: string;
   scMute: string;
   settings: string;
+  screenshot: string;
+  screenshotCopied: string;
+  screenshotSaved: string;
+  screenshotFailed: string;
   copyLog: string;
   logCopied: string;
 }
@@ -84,6 +88,10 @@ const zhCN: LocaleStrings = {
   scFullscreen: '全屏切换',
   scMute: '静音切换',
   settings: '设置',
+  screenshot: '截图当前画面',
+  screenshotCopied: '截图已复制到剪贴板',
+  screenshotSaved: '截图已保存',
+  screenshotFailed: '截图失败',
   copyLog: '复制日志',
   logCopied: '已复制',
 };
@@ -129,6 +137,10 @@ const en: LocaleStrings = {
   scFullscreen: 'Toggle fullscreen',
   scMute: 'Toggle mute',
   settings: 'Settings',
+  screenshot: 'Capture frame',
+  screenshotCopied: 'Screenshot copied to clipboard',
+  screenshotSaved: 'Screenshot saved',
+  screenshotFailed: 'Screenshot failed',
   copyLog: 'Copy log',
   logCopied: 'Copied',
 };
