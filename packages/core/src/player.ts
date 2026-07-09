@@ -516,6 +516,9 @@ export class SweetPlayer {
     });
     listen('timeupdate', () => {
       this.controls.updateTime();
+      // 兜底：timeupdate 只在 currentTime 前进时触发，说明确实在播放（非缓冲）。
+      // iOS 原生 HLS 常虚发 stalled/waiting 却不补发 playing/canplay，导致转圈不消失。
+      if (!v.paused && !v.seeking) this.state.hideLoading();
       this.emitter.emit('timeupdate', { currentTime: v.currentTime, duration: v.duration });
     });
     listen('progress', () => this.controls.progress.update());
@@ -629,7 +632,14 @@ export class SweetPlayer {
   }
 
   private hideControlsNow(): void {
-    if (!this.video.paused) this.container.classList.add('sp-controls-hidden');
+    if (this.video.paused) return;
+    // 有弹出菜单（设置面板 / 画质 / 倍速等）打开时不隐藏，否则菜单会被一起隐藏；
+    // 稍后再试，等菜单关闭后仍能正常自动隐藏
+    if (this.container.querySelector('.sp-menu.sp-open')) {
+      this.scheduleHide();
+      return;
+    }
+    this.container.classList.add('sp-controls-hidden');
   }
 
   private scheduleHide(): void {
