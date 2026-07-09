@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.7.0
+
+### Minor Changes
+
+- 8031351: Add `addContextMenuItem` API for plugins to dynamically register right-click menu items
+
 ## 0.6.4
 
 ### Patch Changes
