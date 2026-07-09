@@ -104,15 +104,16 @@ const remove = player.addSettingsRow({
 
 // 选择行示例
 player.addSettingsRow({
-  key: 'subtitle',
-  label: '字幕',
-  currentValue: '关闭',
+  key: 'theme',
+  label: '主题色',
+  currentValue: '默认',
   items: [
-    { label: '关闭', value: '' },
-    { label: '简体中文', value: '/subs/zh.ass' },
+    { label: '默认', value: '#ff4d6d' },
+    { label: '蓝色', value: '#409eff' },
+    { label: '绿色', value: '#67c23a' },
   ],
-  activeValue: '',
-  onSelect: (item) => loadSubtitle(item.value),
+  activeValue: '#ff4d6d',
+  onSelect: (item) => player.container.style.setProperty('--sp-accent', item.value),
 });
 
 remove(); // 需要时移除该行
