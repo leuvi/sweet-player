@@ -115,6 +115,7 @@
 }
 
 .sp-stats-close {
+  appearance: none;
   width: 22px;
   height: 22px;
   border: none;
@@ -123,7 +124,8 @@
   cursor: pointer;
   opacity: 0.7;
   font-size: 16px;
-  line-height: 1;
+  line-height: 22px;
+  padding: 0;
   flex-shrink: 0;
 }
 
@@ -238,6 +240,7 @@
 }
 
 .sp-context-item {
+  appearance: none;
   display: block;
   width: 100%;
   padding: 8px 16px;
@@ -599,6 +602,7 @@
 }
 
 .sp-settings-row {
+  appearance: none;
   display: flex;
   align-items: center;
   width: 100%;
@@ -638,6 +642,7 @@
 }
 
 .sp-settings-back {
+  appearance: none;
   display: flex;
   align-items: center;
   width: 100%;

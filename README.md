@@ -6,7 +6,7 @@
 [![license](https://img.shields.io/github/license/leuvi/sweet-player)](./LICENSE)
 [![live demo](https://img.shields.io/badge/demo-player.sweetui.com-ff4d6d)](https://player.sweetui.com)
 
-基于 hls.js 的自定义视频播放器，核心零框架依赖，支持 React 19 / Vue 3 / 原生 JS，TypeScript 编写。
+基于 hls.js 的自定义视频播放器，核心零框架依赖，支持 React / Vue / 原生 JS，TypeScript 编写。
 
 **🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
@@ -15,8 +15,8 @@
 | 包 | 说明 |
 |---|---|
 | `@sweet-player/core` | 核心播放器（含完整 UI），原生 JS 直接使用；另提供 IIFE 版 `dist/sweet-player.global.js` 供 `<script>` 引入 |
-| `@sweet-player/react` | React 组件封装（React ≥ 18，含 React 19） |
-| `@sweet-player/vue` | Vue 3 组件封装 |
+| `@sweet-player/react` | React 组件封装 |
+| `@sweet-player/vue` | Vue 组件封装 |
 
 ## 快速开始
 
@@ -56,7 +56,7 @@ player.on('timeupdate', ({ currentTime, duration }) => {});
 player.destroy();
 ```
 
-### React 19
+### React
 
 ```tsx
 import { SweetPlayer, type SweetPlayerCore } from '@sweet-player/react';
@@ -66,7 +66,7 @@ const ref = useRef<SweetPlayerCore | null>(null);
 ref.current?.seekBy(30);
 ```
 
-### Vue 3
+### Vue
 
 ```vue
 <SweetPlayer :src="src" title="..." id="ep-01" @ready="p => (player = p)" @next="..." />

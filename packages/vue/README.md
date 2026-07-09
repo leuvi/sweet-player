@@ -1,6 +1,6 @@
 # @sweet-player/vue
 
-[@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core) 的 Vue 3 组件封装。
+[@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core) 的 Vue 组件封装。
 
 **🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
