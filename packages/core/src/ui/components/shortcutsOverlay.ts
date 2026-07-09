@@ -14,10 +14,10 @@ export function createShortcutsOverlay(container: HTMLElement, i18n: I18n, seekS
   function show(): void {
     if (root) return;
     root = createEl('div', { className: 'sp-shortcuts', parent: container });
-    const closeBtn = createEl('button', {
+    const closeBtn = createEl('div', {
       className: 'sp-shortcuts-close',
       text: '✕',
-      attrs: { type: 'button', 'aria-label': i18n.t('close') },
+      attrs: { role: 'button', tabindex: '0', 'aria-label': i18n.t('close') },
       parent: root,
     });
     closeBtn.addEventListener('click', hide);

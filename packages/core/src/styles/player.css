@@ -97,8 +97,6 @@
 }
 
 .sp-stats-copy {
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   opacity: 0.7;
@@ -115,18 +113,15 @@
 }
 
 .sp-stats-close {
-  appearance: none;
   width: 22px;
   height: 22px;
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   opacity: 0.7;
   font-size: 16px;
   line-height: 22px;
-  padding: 0;
   flex-shrink: 0;
+  text-align: center;
 }
 
 .sp-stats-close:hover {
@@ -211,13 +206,12 @@
   right: 8px;
   width: 22px;
   height: 22px;
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   opacity: 0.7;
   font-size: 16px;
-  line-height: 1;
+  line-height: 22px;
+  text-align: center;
 }
 
 .sp-shortcuts-close:hover {
@@ -240,14 +234,8 @@
 }
 
 .sp-context-item {
-  appearance: none;
-  display: block;
-  width: 100%;
   padding: 8px 16px;
-  border: none;
-  background: transparent;
   color: var(--sp-text);
-  text-align: left;
   cursor: pointer;
   font-size: 13px;
   white-space: nowrap;
@@ -390,15 +378,12 @@
 .sp-btn {
   width: var(--sp-control-size);
   height: var(--sp-control-size);
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  padding: 0;
   opacity: 0.9;
   transition: opacity 0.1s ease, background 0.1s ease;
 }
@@ -413,9 +398,10 @@
   height: 22px;
 }
 
-.sp-btn:disabled {
+.sp-btn.sp-disabled {
   opacity: 0.35;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .sp-time {
@@ -458,11 +444,7 @@
 }
 
 .sp-menu-item {
-  display: block;
-  width: 100%;
   padding: 7px 16px;
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   text-align: center;
   cursor: pointer;
@@ -576,8 +558,6 @@
 }
 
 .sp-state-cancel {
-  border: none;
-  background: transparent;
   color: var(--sp-accent);
   cursor: pointer;
   font-size: 13px;
@@ -602,13 +582,9 @@
 }
 
 .sp-settings-row {
-  appearance: none;
   display: flex;
   align-items: center;
-  width: 100%;
   padding: 7px 12px;
-  border: none;
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   font-size: 13px;
@@ -642,14 +618,10 @@
 }
 
 .sp-settings-back {
-  appearance: none;
   display: flex;
   align-items: center;
-  width: 100%;
   padding: 7px 12px;
-  border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  background: transparent;
   color: var(--sp-text);
   cursor: pointer;
   font-size: 13px;

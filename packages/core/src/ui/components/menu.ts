@@ -24,10 +24,10 @@ export function createPopupMenu<T>(opts: {
   onSelect: (item: MenuItem<T>) => void;
 }): PopupMenu<T> {
   const root = createEl('div', { className: 'sp-menu' });
-  const btn = createEl('button', {
+  const btn = createEl('div', {
     className: 'sp-btn sp-menu-btn',
     html: opts.buttonHtml,
-    attrs: { type: 'button', title: opts.title, 'aria-label': opts.title },
+    attrs: { role: 'button', tabindex: '0', title: opts.title, 'aria-label': opts.title },
     parent: root,
   });
   const panel = createEl('div', { className: 'sp-menu-panel', parent: root });
@@ -42,10 +42,9 @@ export function createPopupMenu<T>(opts: {
       return;
     }
     for (const item of items) {
-      const itemBtn = createEl('button', {
+      const itemBtn = createEl('div', {
         className: 'sp-menu-item' + (item.value === activeValue ? ' sp-active' : ''),
         text: item.label,
-        attrs: { type: 'button' },
         parent: panel,
       });
       itemBtn.addEventListener('click', (e) => {

@@ -48,10 +48,10 @@ export function createSettingsPanel(opts: {
   sections: SettingsSection[];
 }): SettingsPanel {
   const root = createEl('div', { className: 'sp-menu sp-settings' });
-  const btn = createEl('button', {
+  const btn = createEl('div', {
     className: 'sp-btn',
     html: icons.settings,
-    attrs: { type: 'button', title: opts.buttonTitle, 'aria-label': opts.buttonTitle },
+    attrs: { role: 'button', tabindex: '0', title: opts.buttonTitle, 'aria-label': opts.buttonTitle },
     parent: root,
   });
   const panel = createEl('div', { className: 'sp-settings-panel', parent: root });
@@ -121,9 +121,9 @@ export function createSettingsPanel(opts: {
         continue;
       }
       if (sec.items.length === 0) continue;
-      const row = createEl('button', {
+      const row = createEl('div', {
         className: 'sp-settings-row',
-        attrs: { type: 'button', 'data-key': sec.key },
+        attrs: { 'data-key': sec.key },
         parent: mainView,
       });
       createEl('span', { className: 'sp-settings-label', text: sec.label, parent: row });
@@ -142,9 +142,8 @@ export function createSettingsPanel(opts: {
     const sec = sections.find((s) => s.key === key);
     if (!sec) return;
 
-    const back = createEl('button', {
+    const back = createEl('div', {
       className: 'sp-settings-back',
-      attrs: { type: 'button' },
       parent: subView,
     });
     const backArrow = createEl('span', { className: 'sp-settings-back-arrow', parent: back });
@@ -156,10 +155,9 @@ export function createSettingsPanel(opts: {
     });
 
     for (const item of sec.items) {
-      const itemBtn = createEl('button', {
+      const itemBtn = createEl('div', {
         className: 'sp-menu-item' + (item.value === sec.activeValue ? ' sp-active' : ''),
         text: item.label,
-        attrs: { type: 'button' },
         parent: subView,
       });
       itemBtn.addEventListener('click', (e) => {

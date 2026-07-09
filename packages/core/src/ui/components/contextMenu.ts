@@ -14,10 +14,9 @@ export interface ContextMenu {
 export function createContextMenu(container: HTMLElement, items: ContextMenuItem[]): ContextMenu {
   const menu = createEl('div', { className: 'sp-context-menu', parent: container });
   for (const item of items) {
-    const btn = createEl('button', {
+    const btn = createEl('div', {
       className: 'sp-context-item',
       text: item.label,
-      attrs: { type: 'button' },
       parent: menu,
     });
     btn.addEventListener('click', () => {

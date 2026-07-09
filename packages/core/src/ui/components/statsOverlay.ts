@@ -57,10 +57,9 @@ export function createStatsOverlay(
     if (root) return;
     root = createEl('div', { className: 'sp-stats', parent: container });
     const header = createEl('div', { className: 'sp-stats-header', parent: root });
-    const copyBtn = createEl('button', {
+    const copyBtn = createEl('div', {
       className: 'sp-stats-copy',
       text: i18n.t('copyLog'),
-      attrs: { type: 'button' },
       parent: header,
     });
     copyBtn.addEventListener('click', () => {
@@ -73,10 +72,10 @@ export function createStatsOverlay(
         () => {},
       );
     });
-    const closeBtn = createEl('button', {
+    const closeBtn = createEl('div', {
       className: 'sp-stats-close',
       text: '✕',
-      attrs: { type: 'button', 'aria-label': i18n.t('closeStats') },
+      attrs: { role: 'button', tabindex: '0', 'aria-label': i18n.t('closeStats') },
       parent: header,
     });
     closeBtn.addEventListener('click', hide);

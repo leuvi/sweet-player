@@ -55,10 +55,9 @@ export function createStateOverlay(i18n: I18n): StateOverlay {
       el.classList.remove('sp-loading');
       errorEl = createEl('div', { className: 'sp-state-panel', parent: el });
       createEl('div', { className: 'sp-state-message', text: i18n.t('loadError'), parent: errorEl });
-      const retryBtn = createEl('button', {
+      const retryBtn = createEl('div', {
         className: 'sp-state-btn',
         text: i18n.t('retry'),
-        attrs: { type: 'button' },
         parent: errorEl,
       });
       retryBtn.addEventListener('click', () => {
@@ -74,10 +73,9 @@ export function createStateOverlay(i18n: I18n): StateOverlay {
       endedEl = createEl('div', { className: 'sp-state-panel', parent: el });
 
       const buttons = createEl('div', { className: 'sp-state-actions', parent: endedEl });
-      const replayBtn = createEl('button', {
+      const replayBtn = createEl('div', {
         className: 'sp-state-btn',
         text: i18n.t('replay'),
-        attrs: { type: 'button' },
         parent: buttons,
       });
       replayBtn.addEventListener('click', () => {
@@ -86,10 +84,9 @@ export function createStateOverlay(i18n: I18n): StateOverlay {
       });
 
       if (onNext) {
-        const nextBtn = createEl('button', {
+        const nextBtn = createEl('div', {
           className: 'sp-state-btn sp-state-btn-primary',
           text: i18n.t('playNext'),
-          attrs: { type: 'button' },
           parent: buttons,
         });
         nextBtn.addEventListener('click', () => {
@@ -104,10 +101,9 @@ export function createStateOverlay(i18n: I18n): StateOverlay {
             text: i18n.t('autoNextIn', { n: remain }),
             parent: endedEl,
           });
-          const cancelBtn = createEl('button', {
+          const cancelBtn = createEl('div', {
             className: 'sp-state-cancel',
             text: i18n.t('cancel'),
-            attrs: { type: 'button' },
             parent: tip,
           });
           cancelBtn.addEventListener('click', () => {

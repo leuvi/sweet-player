@@ -14,10 +14,10 @@ export function createVolumeControl(opts: {
   onToggleMute: () => void;
 }): VolumeControl {
   const root = createEl('div', { className: 'sp-volume' });
-  const btn = createEl('button', {
+  const btn = createEl('div', {
     className: 'sp-btn',
     html: icons.volumeHigh,
-    attrs: { type: 'button', title: opts.muteTitle, 'aria-label': opts.muteTitle },
+    attrs: { role: 'button', tabindex: '0', title: opts.muteTitle, 'aria-label': opts.muteTitle },
     parent: root,
   });
   const sliderWrap = createEl('div', { className: 'sp-volume-slider', parent: root });

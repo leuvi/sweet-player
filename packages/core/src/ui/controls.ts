@@ -69,13 +69,12 @@ export function createControls(ctx: ControlsContext): Controls {
   const row = createEl('div', { className: 'sp-controls', parent: bottomEl });
 
   const button = (html: string, title: string, onClick: () => void, disabled = false, visible = true) => {
-    const btn = createEl('button', {
-      className: 'sp-btn',
+    const btn = createEl('div', {
+      className: 'sp-btn' + (disabled ? ' sp-disabled' : ''),
       html,
-      attrs: { type: 'button', title, 'aria-label': title },
+      attrs: { role: 'button', tabindex: '0', title, 'aria-label': title },
       parent: visible ? row : undefined,
     });
-    btn.disabled = disabled;
     btn.addEventListener('click', onClick);
     return btn;
   };
