@@ -2,6 +2,8 @@
 
 [@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core) 的 React 组件封装，支持 React 18 / 19。
 
+**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
+
 ## 安装
 
 ```bash

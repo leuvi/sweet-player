@@ -21,6 +21,9 @@ export default defineConfig([
     entry: { 'sweet-player': 'src/global.ts' },
     format: ['iife'],
     globalName: 'SweetPlayer',
+    // global.ts 是 default 导出，IIFE 下全局会被包成 { default: SweetPlayer }；
+    // 这里把它拍平，让 window.SweetPlayer 直接是类本身，支持 new SweetPlayer(...)
+    footer: { js: 'SweetPlayer=SweetPlayer.default;' },
     loader: cssAsText,
     minify: true,
     outExtension: () => ({ js: '.global.js' }),
