@@ -17,8 +17,7 @@ npm install @sweet-player/core
 ```html
 <script src="https://unpkg.com/@sweet-player/core/dist/sweet-player.global.js"></script>
 <script>
-  // IIFE 版为 default 导出，全局对象上取 .default
-  const player = new SweetPlayer.default({ container: '#player', src: '...' });
+  const player = new SweetPlayer({ container: '#player', src: '...' });
 </script>
 ```
 

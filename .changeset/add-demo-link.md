@@ -4,4 +4,5 @@
 '@sweet-player/vue': patch
 ---
 
-Docs: add live demo link (player.sweetui.com) to package READMEs; fix `<script>` (IIFE) usage example to `new SweetPlayer.default(...)`
+- IIFE (`<script>`) global build now exposes the `SweetPlayer` class directly, so it can be used as `new SweetPlayer(...)` instead of `new SweetPlayer.default(...)`
+- Docs: add live demo link (player.sweetui.com) to package READMEs
