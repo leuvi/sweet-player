@@ -2,6 +2,8 @@
 
 基于 hls.js 的自定义视频播放器，核心零框架依赖，TypeScript 编写，支持原生 JS / React / Vue。
 
+**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
+
 > React 封装见 [@sweet-player/react](https://www.npmjs.com/package/@sweet-player/react)，Vue 封装见 [@sweet-player/vue](https://www.npmjs.com/package/@sweet-player/vue)。
 
 ## 安装
@@ -15,7 +17,8 @@ npm install @sweet-player/core
 ```html
 <script src="https://unpkg.com/@sweet-player/core/dist/sweet-player.global.js"></script>
 <script>
-  const player = new SweetPlayer.SweetPlayer({ container: '#player', src: '...' });
+  // IIFE 版为 default 导出，全局对象上取 .default
+  const player = new SweetPlayer.default({ container: '#player', src: '...' });
 </script>
 ```
 

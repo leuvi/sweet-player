@@ -4,8 +4,11 @@
 [![npm downloads](https://img.shields.io/npm/dm/@sweet-player/core)](https://www.npmjs.com/package/@sweet-player/core)
 [![GitHub stars](https://img.shields.io/github/stars/leuvi/sweet-player?style=flat)](https://github.com/leuvi/sweet-player)
 [![license](https://img.shields.io/github/license/leuvi/sweet-player)](./LICENSE)
+[![live demo](https://img.shields.io/badge/demo-player.sweetui.com-ff4d6d)](https://player.sweetui.com)
 
 基于 hls.js 的自定义视频播放器，核心零框架依赖，支持 React 19 / Vue 3 / 原生 JS，TypeScript 编写。
+
+**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
 ## 包结构
 
