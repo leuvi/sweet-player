@@ -1,5 +1,14 @@
 # @sweet-player/vue
 
+## 0.6.2
+
+### Patch Changes
+
+- 3c93e52: - IIFE (`<script>`) global build now exposes the `SweetPlayer` class directly, so it can be used as `new SweetPlayer(...)` instead of `new SweetPlayer.default(...)`
+  - Docs: add live demo link (player.sweetui.com) to package READMEs
+- Updated dependencies [3c93e52]
+  - @sweet-player/core@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes
