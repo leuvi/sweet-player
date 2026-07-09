@@ -4,8 +4,9 @@
     {
       "name": "vanilla",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "playground-vanilla", "dev", "--port", "5183", "--strictPort"],
-      "port": 5183
+      "runtimeArgs": ["--filter", "playground-vanilla", "dev"],
+      "port": 5183,
+      "autoPort": true
     },
     {
       "name": "react",
@@ -18,6 +19,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "playground-vue", "dev", "--port", "5185", "--strictPort"],
       "port": 5185
+    },
+    {
+      "name": "demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve", "demo", "-l", "5190"],
+      "port": 5190
     }
   ]
 }

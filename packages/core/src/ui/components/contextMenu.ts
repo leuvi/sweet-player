@@ -6,6 +6,7 @@ export interface ContextMenuItem {
 }
 
 export interface ContextMenu {
+  addItem(item: ContextMenuItem, index?: number): () => void;
   hide(): void;
   destroy(): void;
 }
@@ -49,6 +50,23 @@ export function createContextMenu(container: HTMLElement, items: ContextMenuItem
   document.addEventListener('pointerdown', onPointerDown, true);
 
   return {
+    addItem(item: ContextMenuItem, index?: number) {
+      const el = createEl('div', {
+        className: 'sp-context-item',
+        text: item.label,
+      });
+      el.addEventListener('click', () => {
+        hide();
+        item.onClick();
+      });
+      const children = menu.children;
+      if (index !== undefined && index < children.length) {
+        menu.insertBefore(el, children[index]);
+      } else {
+        menu.appendChild(el);
+      }
+      return () => el.remove();
+    },
     hide,
     destroy() {
       container.removeEventListener('contextmenu', onContextMenu);

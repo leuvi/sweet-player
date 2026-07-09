@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@sweet-player/core": "workspace:*",
+    "sweet-player-gif": "^0.1.0",
     "sweet-subtitle": "^1.1.0"
   },
   "devDependencies": {

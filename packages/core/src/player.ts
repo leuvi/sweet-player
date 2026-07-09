@@ -366,6 +366,12 @@ export class SweetPlayer {
     return this.controls.settingsPanel.addSection(section);
   }
 
+  /** 插件动态注册右键菜单项，返回移除函数 */
+  addContextMenuItem(item: import('./ui/components/contextMenu').ContextMenuItem, index?: number): () => void {
+    if (!this.contextMenu) return () => {};
+    return this.contextMenu.addItem(item, index);
+  }
+
   on<K extends keyof PlayerEventMap>(event: K, fn: (payload: PlayerEventMap[K]) => void): () => void {
     return this.emitter.on(event, fn);
   }

@@ -105,6 +105,9 @@ importers:
       '@sweet-player/core':
         specifier: workspace:*
         version: link:../../packages/core
+      sweet-player-gif:
+        specifier: ^0.1.0
+        version: 0.1.0
       sweet-subtitle:
         specifier: ^1.1.0
         version: 1.1.0(react@19.2.7)(vue@3.5.39(typescript@5.9.3))
@@ -1526,6 +1529,9 @@ packages:
     resolution: {integrity: sha512-DhuTmvZWux4H1UOnWMB3sk0sbaCVOoQZjv8u1rDoTV0HTdGem9hkAZtl4JZy8P2z4Bg0nT+YMeOFyVr4zcG5Tw==}
     engines: {node: '>=16 || 14 >=14.17'}
     hasBin: true
+
+  sweet-player-gif@0.1.0:
+    resolution: {integrity: sha512-MtclK17+dAByCMvLnli8uOnSd25X3XQq+52g2PStPSIPw07g2JrWFo2QMhVYaL/auIzt0TA766Kg8QRcMQ0lGA==}
 
   sweet-subtitle@1.1.0:
     resolution: {integrity: sha512-7HtWGqnLmX5UbLmfCmkZXw8Kbr1TGr1N5v4sSPoiwL7gorz5Of/u/P4zrD68dOeJNzozPmQmz/qReTqDTLdpCg==}
@@ -3078,6 +3084,8 @@ snapshots:
       pirates: 4.0.7
       tinyglobby: 0.2.17
       ts-interface-checker: 0.1.13
+
+  sweet-player-gif@0.1.0: {}
 
   sweet-subtitle@1.1.0(react@19.2.7)(vue@3.5.39(typescript@5.9.3)):
     optionalDependencies:

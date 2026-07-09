@@ -1,4 +1,5 @@
 import type { SettingsSection } from './ui/components/settingsPanel';
+import type { ContextMenuItem } from './ui/components/contextMenu';
 
 export interface QualityLevel {
   /** 显示名称，如 "1080P" */
@@ -56,6 +57,8 @@ export interface SweetPlayerLike {
   on<K extends keyof PlayerEventMap>(event: K, fn: (payload: PlayerEventMap[K]) => void): () => void;
   /** 插件动态注册设置行，返回移除函数（destroy 时自动清理） */
   addSettingsRow(section: SettingsSection): () => void;
+  /** 插件动态注册右键菜单项，返回移除函数 */
+  addContextMenuItem(item: ContextMenuItem, index?: number): () => void;
 }
 
 export interface SweetPlayerOptions {

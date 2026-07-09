@@ -1,6 +1,7 @@
 import { SweetPlayer, type SweetPlayerLike } from '@sweet-player/core';
 import type { SweetPlayerPlugin } from '@sweet-player/core';
 import { SweetSubtitle, decodeBuffer, type SubtitleSize, type SubtitleFormat } from 'sweet-subtitle';
+import { SweetPlayerGif } from 'sweet-player-gif';
 
 // 字幕插件工厂：持有 SweetSubtitle 实例，运行时换字幕无需重建播放器
 function createSubtitlePlugin() {
@@ -78,6 +79,49 @@ function createSubtitlePlugin() {
   };
 }
 
+function createGifPlugin(): SweetPlayerPlugin {
+  return {
+    name: 'sweet-player-gif',
+    apply(p) {
+      const gif = new SweetPlayerGif(p.video, { duration: 3, fps: 10, maxWidth: 480 });
+      let started = false;
+
+      const onPlay = p.on('play', () => {
+        if (!started) { gif.start(); started = true; }
+      });
+      const onDestroy = p.on('destroy', () => {
+        gif.destroy(); started = false;
+      });
+
+      const removeMenu = p.addContextMenuItem({
+        label: '截取动画 (GIF)',
+        async onClick() {
+          if (!started) { gif.start(); started = true; }
+          try {
+            const blob = await gif.capture();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `capture-${Date.now()}.gif`;
+            a.click();
+            URL.revokeObjectURL(url);
+          } catch (err) {
+            console.error('[gif] capture failed', err);
+          }
+        },
+      }, 1);
+
+      return () => {
+        onPlay();
+        onDestroy();
+        removeMenu();
+        gif.destroy();
+        started = false;
+      };
+    },
+  };
+}
+
 const subtitle = createSubtitlePlugin();
 
 const player = new SweetPlayer({
@@ -89,7 +133,7 @@ const player = new SweetPlayer({
   seekStep: 10,
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个
-  plugins: [subtitle.plugin],    // 接入字幕插件
+  plugins: [subtitle.plugin, createGifPlugin()],
   onPrev: () => console.log('[playground] prev clicked'),
   onNext: () => console.log('[playground] next clicked'),
   onQualityChange: (q) => console.log('[playground] quality ->', q),

@@ -175,9 +175,55 @@ subtitle.hide();
 
 不想用插件的话也可以完全独立管理：`new SweetSubtitle(player.video, ...)` 拿到实例自己持有，只需在销毁播放器前调用 `sub.destroy()`。
 
+### 接入 [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) 动画截取
+
+```bash
+npm install sweet-player-gif
+```
+
+注册插件后右键菜单自动出现"截取动画 (GIF)"，点击截取最近 N 秒画面并下载 GIF：
+
+```ts
+import { SweetPlayerGif } from 'sweet-player-gif';
+import type { SweetPlayerPlugin } from '@sweet-player/core';
+
+function createGifPlugin(duration = 3): SweetPlayerPlugin {
+  return {
+    name: 'sweet-player-gif',
+    apply(player) {
+      const gif = new SweetPlayerGif(player.video, { duration, fps: 10, maxWidth: 480 });
+      let started = false;
+
+      const offPlay = player.on('play', () => {
+        if (!started) { gif.start(); started = true; }
+      });
+
+      const removeMenu = player.addContextMenuItem({
+        label: '截取动画 (GIF)',
+        async onClick() {
+          if (!started) { gif.start(); started = true; }
+          const blob = await gif.capture();
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `capture-${Date.now()}.gif`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },
+      }, 1); // index 1 = 截图下方
+
+      return () => { offPlay(); removeMenu(); gif.destroy(); };
+    },
+  };
+}
+
+const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
+```
+
+不注册插件则右键菜单不会出现该选项，不增加核心包体积。`duration` / `fps` / `maxWidth` / `quality` 等参数参见 [sweet-player-gif 文档](https://www.npmjs.com/package/sweet-player-gif)。
+
 ## 实例 API
 
-`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio('original'|'21:9'|'16:9'|'4:3')` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `on/off(event, fn)` `destroy()`
+`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio('original'|'21:9'|'16:9'|'4:3')` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`
 
 事件：`ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
 
