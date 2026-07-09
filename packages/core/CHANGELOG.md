@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.6.4
+
+### Patch Changes
+
+- 5b05939: Replace all `<button>` elements with `<div>` in player UI for cross-browser styling consistency
+
 ## 0.6.3
 
 ### Patch Changes
