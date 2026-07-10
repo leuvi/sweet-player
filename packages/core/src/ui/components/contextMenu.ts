@@ -2,6 +2,7 @@ import { createEl } from '../../utils/dom';
 
 export interface ContextMenuItem {
   label: string;
+  html?: string;
   onClick(): void;
 }
 
@@ -17,7 +18,7 @@ export function createContextMenu(container: HTMLElement, items: ContextMenuItem
   for (const item of items) {
     const btn = createEl('div', {
       className: 'sp-context-item',
-      text: item.label,
+      ...(item.html ? { html: item.html } : { text: item.label }),
       parent: menu,
     });
     btn.addEventListener('click', () => {
@@ -53,7 +54,7 @@ export function createContextMenu(container: HTMLElement, items: ContextMenuItem
     addItem(item: ContextMenuItem, index?: number) {
       const el = createEl('div', {
         className: 'sp-context-item',
-        text: item.label,
+        ...(item.html ? { html: item.html } : { text: item.label }),
       });
       el.addEventListener('click', () => {
         hide();

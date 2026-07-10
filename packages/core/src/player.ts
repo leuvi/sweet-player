@@ -37,6 +37,7 @@ const DEFAULT_AUTO_NEXT_SECONDS = 5;
 const CONTROLS_HIDE_DELAY = 3000;
 const SINGLE_CLICK_DELAY = 250;
 const NPM_URL = 'https://www.npmjs.com/package/@sweet-player/core';
+const LOGO_ICON = '<svg viewBox="0 0 64 64" width="14" height="14" style="vertical-align:-2px"><defs><mask id="sp-m"><rect width="64" height="64" fill="white"/><rect x="11" y="21" width="42" height="32" rx="4" fill="black"/></mask></defs><line x1="26" y1="16" x2="18" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="16" x2="46" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="6" y="16" width="52" height="42" rx="8" fill="currentColor" mask="url(#sp-m)"/><path d="M32 32c-2-3.5-6.5-4.5-8.5-2s-1.2 6.5 8.5 13c9.7-6.5 10.5-10.5 8.5-13s-6.5-1.5-8.5 2z" fill="currentColor"/></svg>';
 const PROGRESS_SAVE_INTERVAL = 5000;
 /** 距结尾小于该秒数视为看完，清除断点 */
 const PROGRESS_END_GUARD = 10;
@@ -122,16 +123,17 @@ export class SweetPlayer {
           onClick: () => this.screenshot(),
         },
         {
-          label: `${this.i18n.t('changelog')}: v${VERSION}`,
-          onClick: () => window.open(NPM_URL, '_blank', 'noopener'),
-        },
-        {
           label: this.i18n.t('videoInfo'),
           onClick: () => this.stats.toggle(),
         },
         {
           label: this.i18n.t('shortcuts'),
           onClick: () => this.shortcutsPanel.toggle(),
+        },
+        {
+          label: `${this.i18n.t('changelog')}: v${VERSION}`,
+          html: `${LOGO_ICON} ${this.i18n.t('changelog')}: v${VERSION}`,
+          onClick: () => window.open(NPM_URL, '_blank', 'noopener'),
         },
       ]);
     }
