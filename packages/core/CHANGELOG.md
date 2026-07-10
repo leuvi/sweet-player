@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.7.3
+
+### Patch Changes
+
+- fd155fb: Add sweet-danmaku (bullet comments) plugin documentation to README
+
 ## 0.7.2
 
 ### Patch Changes
