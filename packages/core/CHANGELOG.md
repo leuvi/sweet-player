@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.7.2
+
+### Patch Changes
+
+- 965bb72: Add logo icon to changelog entry in context menu
+
 ## 0.7.1
 
 ### Patch Changes
