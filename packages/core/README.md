@@ -124,7 +124,7 @@ subtitle.hide();
 
 You can also manage it independently: `new SweetSubtitle(player.video, ...)` — just call `sub.destroy()` before destroying the player.
 
-### [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) GIF Capture
+### [sweet-player-gif](https://github.com/leuvi/sweet-player-gif) GIF Capture
 
 ```bash
 npm install sweet-player-gif
@@ -168,7 +168,7 @@ function createGifPlugin(duration = 3): SweetPlayerPlugin {
 const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 ```
 
-Without the plugin, the context menu item won't appear and the core bundle size stays unchanged. See [sweet-player-gif docs](https://www.npmjs.com/package/sweet-player-gif) for options.
+Without the plugin, the context menu item won't appear and the core bundle size stays unchanged. See [sweet-player-gif docs](https://github.com/leuvi/sweet-player-gif) for options.
 
 ## Instance API
 

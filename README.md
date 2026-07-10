@@ -233,7 +233,7 @@ await subtitle.load('/subs/ep-02.ass');
 subtitle.hide();
 ```
 
-### [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) — GIF Capture Plugin
+### [sweet-player-gif](https://github.com/leuvi/sweet-player-gif) — GIF Capture Plugin
 
 ```bash
 npm install sweet-player-gif
@@ -277,7 +277,7 @@ function createGifPlugin(duration = 3): SweetPlayerPlugin {
 const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 ```
 
-Without the plugin, the menu item won't appear. See [sweet-player-gif docs](https://www.npmjs.com/package/sweet-player-gif) for all options.
+Without the plugin, the menu item won't appear. See [sweet-player-gif docs](https://github.com/leuvi/sweet-player-gif) for all options.
 
 ## Hidden Controls
 

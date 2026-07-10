@@ -233,7 +233,7 @@ await subtitle.load('/subs/ep-02.ass');
 subtitle.hide();
 ```
 
-### 接入 [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) 动画截取插件
+### 接入 [sweet-player-gif](https://github.com/leuvi/sweet-player-gif) 动画截取插件
 
 ```bash
 npm install sweet-player-gif
@@ -277,7 +277,7 @@ function createGifPlugin(duration = 3): SweetPlayerPlugin {
 const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 ```
 
-不注册插件则右键菜单不会出现该选项。更多参数参见 [sweet-player-gif 文档](https://www.npmjs.com/package/sweet-player-gif)。
+不注册插件则右键菜单不会出现该选项。更多参数参见 [sweet-player-gif 文档](https://github.com/leuvi/sweet-player-gif)。
 
 ## 隐藏功能
 
