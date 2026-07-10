@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.7.1
+
+### Patch Changes
+
+- 3e625c1: Add English README as default, restructure docs for better user onboarding
+
 ## 0.7.0
 
 ### Minor Changes
