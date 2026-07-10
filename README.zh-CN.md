@@ -1,4 +1,4 @@
-English | [中文](README.zh-CN.md)
+[English](README.md) | 中文
 
 # Sweet Player
 
@@ -8,25 +8,25 @@ English | [中文](README.zh-CN.md)
 [![license](https://img.shields.io/github/license/leuvi/sweet-player)](./LICENSE)
 [![live demo](https://img.shields.io/badge/demo-player.sweetui.com-ff4d6d)](https://player.sweetui.com)
 
-A custom video player built on hls.js. Zero framework dependency at its core, with React / Vue / vanilla JS support. Written in TypeScript.
+基于 hls.js 的自定义视频播放器，核心零框架依赖，支持 React / Vue / 原生 JS，TypeScript 编写。
 
-**Live Demo: [player.sweetui.com](https://player.sweetui.com)**
+**在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
-## Install
+## 安装
 
 ```bash
 npm install @sweet-player/core
 ```
 
-| Package | Description |
+| 包 | 说明 |
 |---|---|
-| `@sweet-player/core` | Core player (full UI included), for vanilla JS or as the base for framework wrappers |
-| `@sweet-player/react` | React component wrapper |
-| `@sweet-player/vue` | Vue component wrapper |
+| `@sweet-player/core` | 核心播放器（含完整 UI），原生 JS 直接使用 |
+| `@sweet-player/react` | React 组件封装 |
+| `@sweet-player/vue` | Vue 组件封装 |
 
-## Quick Start
+## 快速开始
 
-### Vanilla JS
+### 原生 JS
 
 ```ts
 import { SweetPlayer } from '@sweet-player/core';
@@ -37,7 +37,7 @@ const player = new SweetPlayer({
 });
 ```
 
-### CDN / Script Tag
+### CDN / Script 标签
 
 ```html
 <script src="https://unpkg.com/@sweet-player/core/dist/sweet-player.global.js"></script>
@@ -70,24 +70,24 @@ npm install @sweet-player/vue
 <SweetPlayer :src="src" title="..." id="ep-01" @ready="p => (player = p)" @next="..." />
 ```
 
-## Options
+## 配置项
 
 ```ts
 const player = new SweetPlayer({
-  container: '#player',          // Element or CSS selector
+  container: '#player',          // 元素或选择器
   src: 'https://example.com/video.m3u8',
-  title: 'Video Title',
-  id: 'ep-01',                   // Enables resume playback from last position
-  volume: 80,                    // 0-100 (localStorage preference takes priority)
-  seekStep: 10,                  // Seek step in seconds
+  title: '影片标题',
+  id: 'ep-01',                   // 传入后自动断点续播
+  volume: 80,                    // 0-100（localStorage 偏好优先）
+  seekStep: 10,                  // 快进快退秒数
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   playbackRates: [0.5, 1, 1.5, 2],
-  autoQuality: true,             // Default true: auto-populate quality menu from HLS levels
-  persist: true,                 // Default true: remember volume/mute/rate in localStorage
-  autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
-  locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
-  hiddenControls: ['ratio'],     // Hide specific UI controls, all shown by default
-  plugins: [],                   // Plugin list
+  autoQuality: true,             // 默认 true：自动读取 hls levels 填充画质菜单
+  persist: true,                 // 默认 true：记忆音量/静音/倍速
+  autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
+  locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
+  hiddenControls: ['ratio'],     // 不显示的功能，默认全显示
+  plugins: [],                   // 插件列表
   onPrev: () => {},
   onNext: () => {},
   onQualityChange: (q) => {},
@@ -97,11 +97,11 @@ const player = new SweetPlayer({
 
 ## API
 
-### Methods
+### 方法
 
 `play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio('original'|'21:9'|'16:9'|'4:3')` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`
 
-### Events
+### 事件
 
 `ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
 
@@ -110,33 +110,33 @@ player.on('timeupdate', ({ currentTime, duration }) => {});
 player.on('error', ({ type, detail }) => {});
 ```
 
-## Quality / Audio Tracks
+## 画质 / 音轨
 
-- **Auto mode (default)**: HLS multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets hls.js ABR decide.
-- **Manual mode**: Pass `qualities` / `audioTracks` for custom lists. Switching triggers `onQualityChange` / `onAudioTrackChange` callbacks. If `QualityLevel.src` is provided, the player auto-switches source while preserving playback position. Use `setQualities()` / `setAudioTracks()` to update at runtime.
+- **自动模式（默认）**：HLS 流有多档画质/音轨时自动填充菜单，选择"自动"由 hls.js ABR 决定。
+- **业务模式**：传入 `qualities` / `audioTracks` 列表则以业务为准，切换通过 `onQualityChange` / `onAudioTrackChange` 回调；`QualityLevel.src` 传了地址会自动换源并保持进度。运行时可用 `setQualities()` / `setAudioTracks()` 更新。
 
-## Controls
+## 交互
 
-### Keyboard
+### 键盘
 
-| Key | Action |
+| 键 | 行为 |
 |---|---|
-| Space | Play / Pause |
-| ← / → | Seek backward / forward by `seekStep` seconds |
-| Hold ← / → | Accelerating seek (10→30→60 s/s, steps up every 2s, executes on release) |
-| ↑ / ↓ | Volume ±5 |
-| F | Toggle fullscreen |
-| M | Toggle mute |
+| 空格 | 播放 / 暂停 |
+| ← / → | 快退 / 快进 `seekStep` 秒 |
+| ← / → 长按 | 阶梯式累计快进快退（10→30→60 秒/秒，每 2 秒升档，松开执行） |
+| ↑ / ↓ | 音量 ±5 |
+| F | 全屏切换 |
+| M | 静音切换 |
 
-### Mouse
+### 鼠标
 
-Click to play/pause · Double-click for fullscreen · Controls auto-hide after 3s during playback · Right-click opens custom context menu (screenshot / video info / shortcuts)
+单击画面播放/暂停 · 双击全屏 · 播放中 3 秒无操作控制栏自动隐藏 · 右键弹出自定义菜单（截图 / 视频信息 / 快捷键）
 
-### Touch
+### 触屏
 
-Horizontal swipe to seek · Vertical swipe on right half adjusts volume · Double-tap left/right third to seek backward/forward · Double-tap center for fullscreen · Single tap toggles controls
+横滑拖动 seek · 右半屏竖滑调音量 · 双击左/右 1/3 区域快退/快进 · 双击中间全屏 · 单击切换控制栏显隐
 
-## Plugin System
+## 插件机制
 
 ```ts
 import type { SweetPlayerPlugin } from '@sweet-player/core';
@@ -144,61 +144,61 @@ import type { SweetPlayerPlugin } from '@sweet-player/core';
 const myPlugin: SweetPlayerPlugin = {
   name: 'my-plugin',
   apply(player) {
-    // player.video / player.container / player.on available
-    return () => { /* cleanup on destroy */ };
+    // player.video / player.container / player.on 可用
+    return () => { /* destroy 时清理 */ };
   },
 };
 
 new SweetPlayer({ ..., plugins: [myPlugin] });
-// Or install at runtime: const uninstall = player.use(myPlugin);
+// 或运行时安装：const uninstall = player.use(myPlugin);
 ```
 
-### Extend Settings Panel
+### 扩展设置面板
 
-Plugins can add custom rows to the settings panel via `addSettingsRow()`:
+插件可通过 `addSettingsRow()` 动态注册设置行：
 
 ```ts
-// Toggle row
+// 开关行
 const remove = player.addSettingsRow({
   key: 'danmaku',
-  label: 'Danmaku',
+  label: '弹幕',
   currentValue: '',
   items: [],
   onSelect: () => {},
   toggle: { checked: true, onToggle: () => toggleDanmaku() },
 });
 
-// Select row
+// 选择行
 player.addSettingsRow({
   key: 'theme',
-  label: 'Theme',
-  currentValue: 'Default',
+  label: '主题色',
+  currentValue: '默认',
   items: [
-    { label: 'Default', value: '#ff4d6d' },
-    { label: 'Blue', value: '#409eff' },
-    { label: 'Green', value: '#67c23a' },
+    { label: '默认', value: '#ff4d6d' },
+    { label: '蓝色', value: '#409eff' },
+    { label: '绿色', value: '#67c23a' },
   ],
   activeValue: '#ff4d6d',
   onSelect: (item) => player.container.style.setProperty('--sp-accent', item.value),
 });
 
-remove(); // Remove the row when needed
+remove(); // 需要时移除该行
 ```
 
-### Extend Context Menu
+### 扩展右键菜单
 
-Plugins can add items to the right-click menu via `addContextMenuItem()`:
+插件可通过 `addContextMenuItem()` 动态注册右键菜单项：
 
 ```ts
 const remove = player.addContextMenuItem({
-  label: 'My Action',
+  label: '自定义操作',
   onClick: () => { /* ... */ },
-}, 1); // index = insertion position
+}, 1); // index = 插入位置
 
-remove(); // Remove when needed
+remove(); // 需要时移除
 ```
 
-### [sweet-subtitle](https://github.com/leuvi/sweet-subtitle) — Subtitle Plugin
+### 接入 [sweet-subtitle](https://github.com/leuvi/sweet-subtitle) 字幕插件
 
 ```bash
 npm install sweet-subtitle
@@ -233,13 +233,13 @@ await subtitle.load('/subs/ep-02.ass');
 subtitle.hide();
 ```
 
-### [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) — GIF Capture Plugin
+### 接入 [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) 动画截取插件
 
 ```bash
 npm install sweet-player-gif
 ```
 
-Adds a "Capture GIF" option to the context menu. Click to capture the last N seconds as a downloadable GIF:
+注册插件后右键菜单自动出现"截取动画 (GIF)"，点击截取最近 N 秒画面并下载：
 
 ```ts
 import { SweetPlayerGif } from 'sweet-player-gif';
@@ -257,7 +257,7 @@ function createGifPlugin(duration = 3): SweetPlayerPlugin {
       });
 
       const removeMenu = player.addContextMenuItem({
-        label: 'Capture GIF',
+        label: '截取动画 (GIF)',
         async onClick() {
           if (!started) { gif.start(); started = true; }
           const blob = await gif.capture();
@@ -277,22 +277,22 @@ function createGifPlugin(duration = 3): SweetPlayerPlugin {
 const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 ```
 
-Without the plugin, the menu item won't appear. See [sweet-player-gif docs](https://www.npmjs.com/package/sweet-player-gif) for all options.
+不注册插件则右键菜单不会出现该选项。更多参数参见 [sweet-player-gif 文档](https://www.npmjs.com/package/sweet-player-gif)。
 
-## Hidden Controls
+## 隐藏功能
 
-`hiddenControls` hides specific UI features (all shown by default; only affects UI, not API or shortcuts):
+`hiddenControls` 收集不显示的功能（默认全显示，只影响 UI，不影响 API 与快捷键）：
 
 ```ts
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `settings` `fullscreen` `title` `progress` `contextMenu`
+可选值：`prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `settings` `fullscreen` `title` `progress` `contextMenu`
 
-## Customization
+## 定制
 
-- **i18n**: `locale: 'en'` for English; `localeStrings` to override specific strings; `registerLocale(name, strings)` to register a full language pack
-- **Theming**: Override CSS variables, e.g. `.sweet-player { --sp-accent: #00a1d6; }`
+- **i18n**：`locale: 'en'` 切英文；`localeStrings` 覆盖个别文案；`registerLocale(name, strings)` 注册整套语言
+- **主题**：覆盖 CSS 变量，如 `.sweet-player { --sp-accent: #00a1d6; }`
 
 ## License
 

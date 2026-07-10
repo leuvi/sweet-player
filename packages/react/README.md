@@ -1,16 +1,16 @@
 # @sweet-player/react
 
-[@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core) 的 React 组件封装。
+React component wrapper for [@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core).
 
-**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
+**Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
-## 安装
+## Install
 
 ```bash
 npm install @sweet-player/react
 ```
 
-## 使用
+## Usage
 
 ```tsx
 import { useRef } from 'react';
@@ -23,7 +23,7 @@ function App() {
     <SweetPlayer
       ref={ref}
       src="https://example.com/video.m3u8"
-      title="影片标题"
+      title="Video Title"
       id="ep-01"
       volume={80}
       seekStep={10}
@@ -33,7 +33,7 @@ function App() {
   );
 }
 
-// 通过 ref 访问播放器实例
+// Access the player instance via ref
 ref.current?.seekBy(30);
 ref.current?.setRate(1.5);
 ref.current?.toggleFullscreen();
@@ -41,25 +41,25 @@ ref.current?.toggleFullscreen();
 
 ## Props
 
-所有 `@sweet-player/core` 的选项（除 `container`）均可作为 props 传入：
+All `@sweet-player/core` options (except `container`) can be passed as props:
 
-| Prop | 类型 | 说明 |
-|------|------|------|
-| `src` | `string` | 视频地址（.m3u8 或普通视频） |
-| `title` | `string` | 左上角标题 |
-| `id` | `string` | 传入后自动断点续播 |
-| `volume` | `number` | 音量 0-100 |
-| `seekStep` | `number` | 快进快退秒数 |
-| `autoNext` | `boolean \| number` | 播完自动下一个（数字为倒计时秒数） |
-| `locale` | `string` | 语言（内置 zh-CN / en） |
-| `plugins` | `SweetPlayerPlugin[]` | 插件列表 |
-| `onPrev` | `() => void` | 上一个回调 |
-| `onNext` | `() => void` | 下一个回调 |
-| ... | | [完整选项见 core 文档](https://www.npmjs.com/package/@sweet-player/core) |
+| Prop | Type | Description |
+|------|------|-------------|
+| `src` | `string` | Video URL (.m3u8 or regular video) |
+| `title` | `string` | Title displayed in the top-left corner |
+| `id` | `string` | Enables resume playback from last position |
+| `volume` | `number` | Volume 0-100 |
+| `seekStep` | `number` | Seek step in seconds |
+| `autoNext` | `boolean \| number` | Auto-play next on ended (number = countdown seconds) |
+| `locale` | `string` | Language (built-in: zh-CN / en) |
+| `plugins` | `SweetPlayerPlugin[]` | Plugin list |
+| `onPrev` | `() => void` | Previous callback |
+| `onNext` | `() => void` | Next callback |
+| ... | | [Full options in core docs](https://www.npmjs.com/package/@sweet-player/core) |
 
 ## Ref
 
-通过 `ref` 获取 `SweetPlayer` 实例，可调用所有实例方法：
+Access the `SweetPlayer` instance via `ref` to call any instance method:
 
 ```ts
 ref.current?.play();

@@ -1,18 +1,18 @@
 # @sweet-player/core
 
-基于 hls.js 的自定义视频播放器，核心零框架依赖，TypeScript 编写，支持原生 JS / React / Vue。
+A custom video player built on hls.js. Zero framework dependency, written in TypeScript. Supports vanilla JS / React / Vue.
 
-**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
+**Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
-> React 封装见 [@sweet-player/react](https://www.npmjs.com/package/@sweet-player/react)，Vue 封装见 [@sweet-player/vue](https://www.npmjs.com/package/@sweet-player/vue)。
+> React wrapper: [@sweet-player/react](https://www.npmjs.com/package/@sweet-player/react). Vue wrapper: [@sweet-player/vue](https://www.npmjs.com/package/@sweet-player/vue).
 
-## 安装
+## Install
 
 ```bash
 npm install @sweet-player/core
 ```
 
-或通过 `<script>` 标签引入 IIFE 版：
+Or include via `<script>` tag (IIFE build):
 
 ```html
 <script src="https://unpkg.com/@sweet-player/core/dist/sweet-player.global.js"></script>
@@ -21,24 +21,24 @@ npm install @sweet-player/core
 </script>
 ```
 
-## 使用
+## Usage
 
 ```ts
 import { SweetPlayer } from '@sweet-player/core';
 
 const player = new SweetPlayer({
-  container: '#player',          // 元素或选择器
+  container: '#player',          // Element or CSS selector
   src: 'https://example.com/video.m3u8',
-  title: '影片标题',
-  id: 'ep-01',                   // 传入后自动断点续播
-  volume: 80,                    // 0-100（localStorage 偏好优先）
-  seekStep: 10,                  // 快进快退秒数
+  title: 'Video Title',
+  id: 'ep-01',                   // Enables resume playback from last position
+  volume: 80,                    // 0-100 (localStorage preference takes priority)
+  seekStep: 10,                  // Seek step in seconds
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   playbackRates: [0.5, 1, 1.5, 2],
-  autoQuality: true,             // 默认 true：自动读取 hls levels 填充画质菜单（含"自动"档）
-  persist: true,                 // 默认 true：记忆音量/静音/倍速
-  autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
-  locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
+  autoQuality: true,             // Default true: auto-populate quality menu from HLS levels (includes "Auto")
+  persist: true,                 // Default true: remember volume/mute/playback rate in localStorage
+  autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
+  locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
   onPrev: () => {},
   onNext: () => {},
   onQualityChange: (q) => {},
@@ -49,26 +49,26 @@ player.on('timeupdate', ({ currentTime, duration }) => {});
 player.destroy();
 ```
 
-## 功能
+## Features
 
-- **完整 UI 控件**：播放/暂停、快进退、进度条（拖拽+缓冲）、倍速、画质、画面比例、音轨、音量、全屏、画中画
-- **键盘快捷键**：空格播放暂停、方向键 seek（长按阶梯加速 10→30→60 秒/秒）、↑↓ 音量、F 全屏、M 静音
-- **触屏手势**：横滑 seek、右半屏竖滑音量、双击快进退/全屏、单击切换控制栏
-- **画质自动接入**：HLS 多档画质/音轨自动填充菜单，也支持业务自定义列表
-- **偏好持久化**：音量/倍速 localStorage 记忆；传 `id` 后断点续播
-- **状态蒙层**：缓冲转圈、错误重试、结束重播+自动连播倒计时
-- **i18n**：内置 zh-CN/en，支持自定义语言
-- **插件机制**：`plugins` 选项或 `player.use(plugin)` 运行时安装
-- **主题定制**：CSS 变量覆盖，如 `--sp-accent`
-- **右键菜单**：屏蔽原生菜单，内置"更新记录（当前版本，跳转 npm）"、"视频信息（YouTube 风格统计面板）"、"快捷键（键位说明面板）"
-- **按需隐藏**：`hiddenControls: ['ratio', 'audioTrack', ...]` 收集不显示的功能，默认全显示（只影响 UI，不影响 API 与快捷键）
+- **Full UI controls**: Play/pause, seek, progress bar (drag + buffer), playback rate, quality, aspect ratio, audio track, volume, fullscreen, PiP
+- **Keyboard shortcuts**: Space for play/pause, arrow keys for seeking (hold for accelerating seek 10→30→60 s/s), ↑↓ for volume, F for fullscreen, M for mute
+- **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
+- **Auto quality**: HLS multi-level quality/audio tracks auto-populate menus; also supports custom lists
+- **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
+- **State overlays**: Buffering spinner, error retry, ended replay + auto-next countdown
+- **i18n**: Built-in zh-CN/en, custom languages supported
+- **Plugin system**: `plugins` option or `player.use(plugin)` for runtime installation
+- **Theming**: Override CSS variables like `--sp-accent`
+- **Context menu**: Custom right-click menu with changelog (current version, links to npm), video info (YouTube-style stats panel), shortcuts panel, screenshot
+- **Hide controls**: `hiddenControls: ['ratio', 'audioTrack', ...]` to hide specific features (UI only, API and shortcuts unaffected)
 
-## 画质 / 音轨
+## Quality / Audio Tracks
 
-- **自动模式（默认）**：HLS 流有多档画质/音轨时自动填充菜单，选择"自动"由 hls.js ABR 决定。
-- **业务模式**：传入 `qualities` / `audioTracks` 列表则以业务为准，切换通过回调通知；运行时可用 `setQualities()` / `setAudioTracks()` 更新。
+- **Auto mode (default)**: HLS multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets hls.js ABR decide.
+- **Manual mode**: Pass `qualities` / `audioTracks` for custom lists; switching triggers callbacks. Use `setQualities()` / `setAudioTracks()` to update at runtime.
 
-## 插件
+## Plugins
 
 ```ts
 import type { SweetPlayerPlugin } from '@sweet-player/core';
@@ -76,22 +76,22 @@ import type { SweetPlayerPlugin } from '@sweet-player/core';
 const myPlugin: SweetPlayerPlugin = {
   name: 'my-plugin',
   apply(player) {
-    // player.video / player.container / player.on 可用
-    return () => { /* destroy 时清理 */ };
+    // player.video / player.container / player.on available
+    return () => { /* cleanup on destroy */ };
   },
 };
 
 new SweetPlayer({ ..., plugins: [myPlugin] });
-// 或运行时：player.use(myPlugin);
+// Or at runtime: player.use(myPlugin);
 ```
 
-### 接入 [sweet-subtitle](https://github.com/leuvi/sweet-subtitle) 字幕
+### [sweet-subtitle](https://github.com/leuvi/sweet-subtitle) Integration
 
 ```bash
 npm install sweet-subtitle
 ```
 
-插件工厂持有字幕实例并对外暴露切换 API，运行时换字幕无需重建播放器：
+A plugin factory holds the subtitle instance and exposes a switching API. Swap subtitles at runtime without rebuilding the player:
 
 ```ts
 import { SweetSubtitle } from 'sweet-subtitle';
@@ -103,12 +103,12 @@ function createSubtitlePlugin(src?: string) {
     name: 'sweet-subtitle',
     apply(player) {
       sub = new SweetSubtitle(player.video, src ? { src } : {});
-      return () => { sub?.destroy(); sub = null; };  // 播放器 destroy 时自动清理
+      return () => { sub?.destroy(); sub = null; };
     },
   };
   return {
     plugin,
-    load: (url: string) => sub?.loadFromUrl(url),   // 切换字幕
+    load: (url: string) => sub?.loadFromUrl(url),
     show: () => sub?.show(),
     hide: () => sub?.hide(),
     setOffset: (s: number) => sub?.setOffset(s),
@@ -118,18 +118,63 @@ function createSubtitlePlugin(src?: string) {
 const subtitle = createSubtitlePlugin('/subs/ep-01.ass');
 const player = new SweetPlayer({ ..., plugins: [subtitle.plugin] });
 
-// 随时换字幕 / 关字幕，播放器不动
 await subtitle.load('/subs/ep-02.ass');
 subtitle.hide();
 ```
 
-不想用插件的话也可以完全独立管理：`new SweetSubtitle(player.video, ...)` 拿到实例自己持有，只需在销毁播放器前调用 `sub.destroy()`。
+You can also manage it independently: `new SweetSubtitle(player.video, ...)` — just call `sub.destroy()` before destroying the player.
 
-## 实例 API
+### [sweet-player-gif](https://www.npmjs.com/package/sweet-player-gif) GIF Capture
 
-`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio(r)` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `load(src)` `setTitle(s)` `use(plugin)` `on/off(event, fn)` `destroy()`
+```bash
+npm install sweet-player-gif
+```
 
-事件：`ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
+Once the plugin is registered, a "Capture GIF" option appears in the context menu. Click to capture the last N seconds as a GIF download:
+
+```ts
+import { SweetPlayerGif } from 'sweet-player-gif';
+import type { SweetPlayerPlugin } from '@sweet-player/core';
+
+function createGifPlugin(duration = 3): SweetPlayerPlugin {
+  return {
+    name: 'sweet-player-gif',
+    apply(player) {
+      const gif = new SweetPlayerGif(player.video, { duration, fps: 10, maxWidth: 480 });
+      let started = false;
+
+      const offPlay = player.on('play', () => {
+        if (!started) { gif.start(); started = true; }
+      });
+
+      const removeMenu = player.addContextMenuItem({
+        label: 'Capture GIF',
+        async onClick() {
+          if (!started) { gif.start(); started = true; }
+          const blob = await gif.capture();
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = `capture-${Date.now()}.gif`;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        },
+      }, 1);
+
+      return () => { offPlay(); removeMenu(); gif.destroy(); };
+    },
+  };
+}
+
+const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
+```
+
+Without the plugin, the context menu item won't appear and the core bundle size stays unchanged. See [sweet-player-gif docs](https://www.npmjs.com/package/sweet-player-gif) for options.
+
+## Instance API
+
+`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio(r)` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`
+
+Events: `ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
 
 ## License
 

@@ -1,16 +1,16 @@
 # @sweet-player/vue
 
-[@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core) 的 Vue 组件封装。
+Vue component wrapper for [@sweet-player/core](https://www.npmjs.com/package/@sweet-player/core).
 
-**🎬 在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
+**Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
-## 安装
+## Install
 
 ```bash
 npm install @sweet-player/vue
 ```
 
-## 使用
+## Usage
 
 ```vue
 <script setup lang="ts">
@@ -28,7 +28,7 @@ function onReady(p: SweetPlayerCore) {
 <template>
   <SweetPlayer
     src="https://example.com/video.m3u8"
-    title="影片标题"
+    title="Video Title"
     id="ep-01"
     :volume="80"
     :seek-step="10"
@@ -41,33 +41,33 @@ function onReady(p: SweetPlayerCore) {
 
 ## Props
 
-所有 `@sweet-player/core` 的选项（除 `container`）均可作为 props 传入：
+All `@sweet-player/core` options (except `container`) can be passed as props:
 
-| Prop | 类型 | 说明 |
-|------|------|------|
-| `src` | `string` | 视频地址（.m3u8 或普通视频） |
-| `title` | `string` | 左上角标题 |
-| `id` | `string` | 传入后自动断点续播 |
-| `volume` | `number` | 音量 0-100 |
-| `seekStep` | `number` | 快进快退秒数 |
-| `autoNext` | `boolean \| number` | 播完自动下一个（数字为倒计时秒数） |
-| `locale` | `string` | 语言（内置 zh-CN / en） |
-| `plugins` | `SweetPlayerPlugin[]` | 插件列表 |
-| ... | | [完整选项见 core 文档](https://www.npmjs.com/package/@sweet-player/core) |
+| Prop | Type | Description |
+|------|------|-------------|
+| `src` | `string` | Video URL (.m3u8 or regular video) |
+| `title` | `string` | Title displayed in the top-left corner |
+| `id` | `string` | Enables resume playback from last position |
+| `volume` | `number` | Volume 0-100 |
+| `seekStep` | `number` | Seek step in seconds |
+| `autoNext` | `boolean \| number` | Auto-play next on ended (number = countdown seconds) |
+| `locale` | `string` | Language (built-in: zh-CN / en) |
+| `plugins` | `SweetPlayerPlugin[]` | Plugin list |
+| ... | | [Full options in core docs](https://www.npmjs.com/package/@sweet-player/core) |
 
 ## Events
 
-| 事件 | 参数 | 说明 |
-|------|------|------|
-| `@ready` | `SweetPlayerCore` | 播放器实例创建完成 |
-| `@prev` | — | 点击上一个 |
-| `@next` | — | 点击下一个 |
-| `@qualityChange` | `QualityLevel` | 画质切换 |
-| `@audioTrackChange` | `AudioTrackInfo` | 音轨切换 |
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `@ready` | `SweetPlayerCore` | Player instance created |
+| `@prev` | — | Previous clicked |
+| `@next` | — | Next clicked |
+| `@qualityChange` | `QualityLevel` | Quality changed |
+| `@audioTrackChange` | `AudioTrackInfo` | Audio track changed |
 
-## 实例方法
+## Instance Methods
 
-通过 `@ready` 事件获取播放器实例后，可调用所有方法：
+Access the player instance via `@ready` event, then call any method:
 
 ```ts
 player.value?.play();
