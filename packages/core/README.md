@@ -170,6 +170,33 @@ const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 
 Without the plugin, the context menu item won't appear and the core bundle size stays unchanged. See [sweet-player-gif docs](https://github.com/leuvi/sweet-player-gif) for options.
 
+### [sweet-danmaku](https://github.com/leuvi/sweet-danmaku) Danmaku (Bullet Comments)
+
+```bash
+npm install sweet-danmaku
+```
+
+The built-in plugin factory adds a danmaku overlay synced with video playback, with toggle and opacity controls in the settings panel:
+
+```ts
+import { createDanmakuPlugin } from 'sweet-danmaku';
+
+const danmaku = createDanmakuPlugin({
+  speed: 1,
+  area: 0.5,
+  comments: [
+    { text: 'Hello!', time: 1 },
+    { text: 'Great scene', time: 5, color: '#ff4d6d' },
+  ],
+});
+
+const player = new SweetPlayer({ ..., plugins: [danmaku.plugin] });
+
+danmaku.send({ text: 'New comment', time: player.video.currentTime });
+```
+
+See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options.
+
 ## Instance API
 
 `play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio(r)` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`

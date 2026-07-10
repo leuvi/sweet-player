@@ -279,6 +279,34 @@ const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 
 不注册插件则右键菜单不会出现该选项。更多参数参见 [sweet-player-gif 文档](https://github.com/leuvi/sweet-player-gif)。
 
+### 接入 [sweet-danmaku](https://github.com/leuvi/sweet-danmaku) 弹幕插件
+
+```bash
+npm install sweet-danmaku
+```
+
+为播放器添加实时弹幕覆盖层，与视频时间轴同步。内置插件工厂自动在设置面板注册开关和透明度滑条：
+
+```ts
+import { createDanmakuPlugin } from 'sweet-danmaku';
+
+const danmaku = createDanmakuPlugin({
+  speed: 1,
+  area: 0.5,
+  comments: [
+    { text: '弹幕来了', time: 1 },
+    { text: '精彩', time: 5, color: '#ff4d6d' },
+  ],
+});
+
+const player = new SweetPlayer({ ..., plugins: [danmaku.plugin] });
+
+// 运行时发送弹幕
+danmaku.send({ text: '新弹幕', time: player.video.currentTime });
+```
+
+更多参数参见 [sweet-danmaku 文档](https://github.com/leuvi/sweet-danmaku)（speed / fontSize / area / filter 等）。
+
 ## 隐藏功能
 
 `hiddenControls` 收集不显示的功能（默认全显示，只影响 UI，不影响 API 与快捷键）：

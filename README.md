@@ -279,6 +279,34 @@ const player = new SweetPlayer({ ..., plugins: [createGifPlugin(3)] });
 
 Without the plugin, the menu item won't appear. See [sweet-player-gif docs](https://github.com/leuvi/sweet-player-gif) for all options.
 
+### [sweet-danmaku](https://github.com/leuvi/sweet-danmaku) — Danmaku (Bullet Comments) Plugin
+
+```bash
+npm install sweet-danmaku
+```
+
+Adds a real-time danmaku (bullet comments) overlay synced with video playback. The built-in plugin factory auto-registers a toggle switch and opacity slider in the settings panel:
+
+```ts
+import { createDanmakuPlugin } from 'sweet-danmaku';
+
+const danmaku = createDanmakuPlugin({
+  speed: 1,
+  area: 0.5,
+  comments: [
+    { text: 'Hello!', time: 1 },
+    { text: 'Great scene', time: 5, color: '#ff4d6d' },
+  ],
+});
+
+const player = new SweetPlayer({ ..., plugins: [danmaku.plugin] });
+
+// Send live danmaku at runtime
+danmaku.send({ text: 'New comment', time: player.video.currentTime });
+```
+
+See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options (speed, fontSize, area, filter, etc.).
+
 ## Hidden Controls
 
 `hiddenControls` hides specific UI features (all shown by default; only affects UI, not API or shortcuts):
