@@ -86,6 +86,7 @@ const player = new SweetPlayer({
   persist: true,                 // 默认 true：记忆音量/静音/倍速
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
   locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
+  heatmap: [{ time: 5, value: 88 }], // 进度条上方热度曲线（最多重播），value 自动归一化
   hiddenControls: ['ratio'],     // 不显示的功能，默认全显示
   plugins: [],                   // 插件列表
   onPrev: () => {},
@@ -307,6 +308,36 @@ danmaku.send({ text: '新弹幕', time: player.video.currentTime });
 
 更多参数参见 [sweet-danmaku 文档](https://github.com/leuvi/sweet-danmaku)（speed / fontSize / area / filter 等）。
 
+## 热度曲线（最多重播）
+
+传入 `heatmap` 即在进度条上方渲染 YouTube 式「最多重播」曲线 —— 顶部一条较亮描边线，下方填充向下渐隐。默认不常驻，hover 进度条时淡入并上移一点，已播放区更亮；设置面板「画中画」下方出现开关。纯 SVG，零额外依赖。
+
+```ts
+new SweetPlayer({
+  container: '#player',
+  src: '.../video.m3u8',
+  heatmap: [
+    { time: 0, value: 3201 },   // time 为秒，value 为任意非负数
+    { time: 5, value: 8850 },
+    { time: 10, value: 4120 },
+  ],
+});
+```
+
+- `time`：秒，内部按视频 `duration` 映射到进度条
+- `value`：热度值，**任意非负数**（内部按最大值自动归一化，无需自己缩放到 0~1）
+- 采样点越密，曲线越平滑连绵
+
+通常做法是先从后端拉取聚合后的观看/重播次数，再创建播放器。服务端只需返回一个 JSON 数组，`value` 直接用每个时间桶的原始次数即可：
+
+```ts
+// GET /api/videos/:id/heatmap  ->  [{ "time": 0, "value": 3201 }, { "time": 5, "value": 8850 }]
+const heatmap = await fetch(`/api/videos/${id}/heatmap`).then((r) => r.json());
+new SweetPlayer({ container: '#player', src, heatmap });
+```
+
+若要彻底禁用（连曲线逻辑都不初始化），把 `'heatmap'` 加入 `hiddenControls`。
+
 ## 隐藏功能
 
 `hiddenControls` 收集不显示的功能（默认全显示，只影响 UI，不影响 API 与快捷键）：
@@ -315,7 +346,7 @@ danmaku.send({ text: '新弹幕', time: player.video.currentTime });
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-可选值：`prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `settings` `fullscreen` `title` `progress` `contextMenu`
+可选值：`prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `settings` `fullscreen` `title` `progress` `contextMenu`
 
 ## 定制
 

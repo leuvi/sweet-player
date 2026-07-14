@@ -6,3 +6,4 @@ dist/
 .npmrc
 .workbuddy/
 demo/
+upload.bat

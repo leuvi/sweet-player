@@ -6,7 +6,7 @@ import { createProgressBar, type ProgressBar } from './components/progressBar';
 import { createVolumeControl, type VolumeControl } from './components/volume';
 import { createSettingsPanel, type SettingsPanel, type SettingsItem, type SettingsSection } from './components/settingsPanel';
 import type { I18n } from '../i18n';
-import type { AspectRatio, AudioTrackInfo, ControlName, QualityLevel } from '../types';
+import type { AspectRatio, AudioTrackInfo, ControlName, HeatmapPoint, QualityLevel } from '../types';
 
 export interface ControlsContext {
   video: HTMLVideoElement;
@@ -15,6 +15,8 @@ export interface ControlsContext {
   playbackRates: number[];
   aspectRatios: AspectRatio[];
   seekStep: number;
+  /** 热度曲线数据，存在时进度条上方渲染曲线并在设置面板出现开关 */
+  heatmap?: HeatmapPoint[];
   /** 不渲染的功能集合 */
   hidden: Set<ControlName>;
   actions: {
@@ -61,10 +63,14 @@ export function createControls(ctx: ControlsContext): Controls {
   // ---- 底部容器 ----
   const bottomEl = createEl('div', { className: 'sp-bottom' });
 
+  // 'heatmap' 或 'progress' 被隐藏时不传数据，热度曲线的构建逻辑完全不初始化
+  const heatmapData = show('progress') && show('heatmap') ? ctx.heatmap : undefined;
   const progress = createProgressBar(video, (t) => {
     video.currentTime = t;
-  });
+  }, heatmapData);
   if (show('progress')) bottomEl.appendChild(progress.el);
+  const hasHeatmap = !!heatmapData?.length;
+  let heatmapVisible = true;
 
   const row = createEl('div', { className: 'sp-controls', parent: bottomEl });
 
@@ -167,6 +173,24 @@ export function createControls(ctx: ControlsContext): Controls {
             toggle: {
               checked: false,
               onToggle: () => actions.togglePip(),
+            },
+          }]
+        : []),
+      ...(hasHeatmap
+        ? [{
+            key: 'heatmap',
+            label: i18n.t('heatmap'),
+            currentValue: '',
+            items: [],
+            activeValue: undefined as boolean | undefined,
+            onSelect: () => {},
+            toggle: {
+              checked: heatmapVisible,
+              onToggle: () => {
+                heatmapVisible = !heatmapVisible;
+                progress.setHeatmapVisible(heatmapVisible);
+                settingsPanel.updateSection('heatmap', { toggle: { checked: heatmapVisible } });
+              },
             },
           }]
         : []),

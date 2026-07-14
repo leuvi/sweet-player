@@ -56,6 +56,7 @@ player.destroy();
 - **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
 - **Auto quality**: HLS multi-level quality/audio tracks auto-populate menus; also supports custom lists
 - **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
+- **Heatmap**: Optional YouTube-style "most replayed" curve above the progress bar (pass `heatmap`; pure SVG, no extra deps)
 - **State overlays**: Buffering spinner, error retry, ended replay + auto-next countdown
 - **i18n**: Built-in zh-CN/en, custom languages supported
 - **Plugin system**: `plugins` option or `player.use(plugin)` for runtime installation
@@ -196,6 +197,35 @@ danmaku.send({ text: 'New comment', time: player.video.currentTime });
 ```
 
 See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options.
+
+## Heatmap (Most replayed)
+
+Pass `heatmap` to render a YouTube-style "most replayed" curve above the progress bar — a bright top line with a fill fading downward. Hidden until you hover the progress bar, then it fades in and slides up; the watched portion is brighter. A toggle appears in the settings panel below Picture-in-Picture. Pure SVG, zero extra dependencies.
+
+```ts
+new SweetPlayer({
+  container: '#player',
+  src: '.../video.m3u8',
+  heatmap: [
+    { time: 0, value: 3201 },   // time in seconds; value is any non-negative number
+    { time: 5, value: 8850 },
+    { time: 10, value: 4120 },
+  ],
+});
+```
+
+- `time` — seconds; mapped onto the progress bar using the video duration
+- `value` — replay/heat intensity, **any non-negative number** (normalized internally by the max)
+- Denser samples produce a smoother curve
+
+Fetch aggregated play counts from your backend, then create the player — the response is a plain JSON array where `value` can be the raw count per time bucket:
+
+```ts
+const heatmap = await fetch(`/api/videos/${id}/heatmap`).then((r) => r.json());
+new SweetPlayer({ container: '#player', src, heatmap });
+```
+
+To disable it entirely (no curve logic initialized), add `'heatmap'` to `hiddenControls`.
 
 ## Instance API
 

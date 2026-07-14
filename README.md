@@ -86,6 +86,7 @@ const player = new SweetPlayer({
   persist: true,                 // Default true: remember volume/mute/rate in localStorage
   autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
   locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
+  heatmap: [{ time: 5, value: 88 }], // Most-replayed curve above the progress bar (values auto-normalized)
   hiddenControls: ['ratio'],     // Hide specific UI controls, all shown by default
   plugins: [],                   // Plugin list
   onPrev: () => {},
@@ -307,6 +308,36 @@ danmaku.send({ text: 'New comment', time: player.video.currentTime });
 
 See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options (speed, fontSize, area, filter, etc.).
 
+## Heatmap (Most replayed)
+
+Pass `heatmap` to render a YouTube-style "most replayed" curve above the progress bar — a bright top line with a fill fading downward. It stays hidden until you hover the progress bar, then fades in and slides up; the watched portion is brighter. A toggle appears in the settings panel below Picture-in-Picture. Pure SVG, zero extra dependencies.
+
+```ts
+new SweetPlayer({
+  container: '#player',
+  src: '.../video.m3u8',
+  heatmap: [
+    { time: 0, value: 3201 },   // time in seconds; value is any non-negative number
+    { time: 5, value: 8850 },
+    { time: 10, value: 4120 },
+  ],
+});
+```
+
+- `time` — seconds; mapped onto the progress bar using the video duration
+- `value` — replay/heat intensity, **any non-negative number** (normalized internally by the max, no need to pre-scale)
+- Denser samples produce a smoother, more continuous curve
+
+Typically you fetch aggregated play counts from your backend, then create the player. The response is a plain JSON array where `value` can be the raw view/replay count per time bucket:
+
+```ts
+// GET /api/videos/:id/heatmap  ->  [{ "time": 0, "value": 3201 }, { "time": 5, "value": 8850 }]
+const heatmap = await fetch(`/api/videos/${id}/heatmap`).then((r) => r.json());
+new SweetPlayer({ container: '#player', src, heatmap });
+```
+
+To disable it entirely so none of the curve logic is initialized, add `'heatmap'` to `hiddenControls`.
+
 ## Hidden Controls
 
 `hiddenControls` hides specific UI features (all shown by default; only affects UI, not API or shortcuts):
@@ -315,7 +346,7 @@ See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `settings` `fullscreen` `title` `progress` `contextMenu`
+Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `settings` `fullscreen` `title` `progress` `contextMenu`
 
 ## Customization
 

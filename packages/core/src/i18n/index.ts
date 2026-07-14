@@ -15,6 +15,7 @@ export interface LocaleStrings {
   mute: string;
   fullscreen: string;
   pip: string;
+  heatmap: string;
   empty: string;
   closeStats: string;
   seconds: string;
@@ -64,6 +65,7 @@ const zhCN: LocaleStrings = {
   mute: '静音 (M)',
   fullscreen: '全屏 (F)',
   pip: '画中画 (P)',
+  heatmap: '热度曲线',
   empty: '暂无可选项',
   closeStats: '关闭统计信息',
   seconds: '秒',
@@ -113,6 +115,7 @@ const en: LocaleStrings = {
   mute: 'Mute (M)',
   fullscreen: 'Fullscreen (F)',
   pip: 'Picture-in-Picture (P)',
+  heatmap: 'Most replayed',
   empty: 'Nothing available',
   closeStats: 'Close stats',
   seconds: 's',

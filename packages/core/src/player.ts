@@ -145,6 +145,7 @@ export class SweetPlayer {
       playbackRates: options.playbackRates ?? DEFAULT_RATES,
       aspectRatios: options.aspectRatios ?? DEFAULT_RATIOS,
       seekStep: options.seekStep ?? 10,
+      heatmap: options.heatmap,
       hidden,
       actions: {
         togglePlay: () => this.toggle(),

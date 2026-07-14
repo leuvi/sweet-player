@@ -133,6 +133,11 @@ const player = new SweetPlayer({
   seekStep: 10,
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个
+  // 热度曲线（最多重播）：任意非负数，内部按最大值归一化
+  heatmap: Array.from({ length: 60 }, (_, i) => ({
+    time: i * 10,
+    value: 0.3 + 0.7 * Math.abs(Math.sin(i / 4)) + 0.3 * Math.random(),
+  })),
   plugins: [subtitle.plugin, createGifPlugin()],
   onPrev: () => console.log('[playground] prev clicked'),
   onNext: () => console.log('[playground] next clicked'),

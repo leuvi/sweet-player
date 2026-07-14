@@ -15,6 +15,14 @@ export interface AudioTrackInfo {
   value: string | number;
 }
 
+/** 热度曲线数据点（如"最多重播"） */
+export interface HeatmapPoint {
+  /** 时间点（秒） */
+  time: number;
+  /** 热度值（任意非负数，内部按最大值归一化） */
+  value: number;
+}
+
 export type AspectRatio = 'original' | '21:9' | '16:9' | '4:3' | (string & {});
 
 export interface LongSeekOptions {
@@ -38,6 +46,7 @@ export type ControlName =
   | 'audioTrack'
   | 'volume'
   | 'pip'
+  | 'heatmap'
   | 'fullscreen'
   | 'settings'
   | 'title'
@@ -86,6 +95,8 @@ export interface SweetPlayerOptions {
   qualities?: QualityLevel[];
   /** 音轨列表（预留） */
   audioTracks?: AudioTrackInfo[];
+  /** 热度曲线数据（如"最多重播"）。传入后进度条上方显示热度曲线，并在设置面板出现开关 */
+  heatmap?: HeatmapPoint[];
   /**
    * 自动从 hls.js 读取画质/音轨填充菜单（默认 true）。
    * 业务传入 qualities/audioTracks 时以业务列表为准。

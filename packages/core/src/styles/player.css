@@ -367,6 +367,74 @@
   display: block;
 }
 
+/* ---------- 热度曲线（Most replayed） ---------- */
+/* 开关开启时也不常驻，仅 hover 进度条时淡入并上移一点 */
+.sp-heatmap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(50% + var(--sp-bar-height) / 2);
+  height: 38px;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.sp-progress:hover .sp-heatmap {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-heatmap {
+    transition: opacity 0.18s ease;
+    transform: none;
+  }
+}
+
+.sp-heatmap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* 顶边描边线：非缩放，保证粗细均匀 */
+.sp-heatmap-line {
+  fill: none;
+  stroke-width: 1.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sp-heatmap-line-base {
+  stroke: rgba(255, 255, 255, 0.4);
+}
+
+.sp-heatmap-line-played {
+  stroke: rgba(255, 255, 255, 0.7);
+}
+
+/* 渐变填充：顶部半透明白 → 底部透明；已播放层更亮 */
+.sp-heatmap-stop-base {
+  stop-color: #fff;
+  stop-opacity: 0.12;
+}
+
+.sp-heatmap-stop-played {
+  stop-color: #fff;
+  stop-opacity: 0.28;
+}
+
+.sp-heatmap-stop-bottom {
+  stop-color: #fff;
+  stop-opacity: 0;
+}
+
+.sp-heatmap-hidden {
+  display: none;
+}
+
 /* ---------- 控制按钮行 ---------- */
 .sp-controls {
   display: flex;
