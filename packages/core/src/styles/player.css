@@ -408,22 +408,22 @@
 }
 
 .sp-heatmap-line-base {
-  stroke: rgba(255, 255, 255, 0.4);
+  stroke: rgba(255, 255, 255, 0.55);
 }
 
 .sp-heatmap-line-played {
-  stroke: rgba(255, 255, 255, 0.7);
+  stroke: rgba(255, 255, 255, 0.95);
 }
 
 /* 渐变填充：顶部半透明白 → 底部透明；已播放层更亮 */
 .sp-heatmap-stop-base {
   stop-color: #fff;
-  stop-opacity: 0.12;
+  stop-opacity: 0.2;
 }
 
 .sp-heatmap-stop-played {
   stop-color: #fff;
-  stop-opacity: 0.28;
+  stop-opacity: 0.42;
 }
 
 .sp-heatmap-stop-bottom {

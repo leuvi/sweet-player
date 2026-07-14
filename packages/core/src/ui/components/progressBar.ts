@@ -18,6 +18,10 @@ const VB_W = 1000;
 const VB_H = 100;
 /** 峰顶留白，避免贴到顶边 */
 const VB_HEAD = 12;
+/** 脚部留白：最低热度也与进度条保持距离 */
+const VB_FOOT = 22;
+/** 曲线基线（收口位置），高于 viewBox 底边 VB_FOOT */
+const VB_FLOOR = VB_H - VB_FOOT;
 
 /** Catmull-Rom 样条转贝塞尔，生成经过所有采样点的平滑开放曲线（仅顶边，用于描边） */
 function buildLinePath(pts: { x: number; y: number }[]): string {
@@ -41,7 +45,7 @@ function buildLinePath(pts: { x: number; y: number }[]): string {
 /** 顶边曲线收口到基线，闭合成面积（用于渐变填充） */
 function closeArea(lineD: string, firstX: number, lastX: number): string {
   if (!lineD) return '';
-  return `${lineD} L ${lastX.toFixed(2)} ${VB_H} L ${firstX.toFixed(2)} ${VB_H} Z`;
+  return `${lineD} L ${lastX.toFixed(2)} ${VB_FLOOR} L ${firstX.toFixed(2)} ${VB_FLOOR} Z`;
 }
 
 export function createProgressBar(
@@ -107,7 +111,7 @@ export function createProgressBar(
       builtForDuration = duration;
       const coords = points.map((p) => ({
         x: clamp(p.time / duration, 0, 1) * VB_W,
-        y: VB_H - (clamp(p.value, 0, maxVal) / maxVal) * (VB_H - VB_HEAD),
+        y: VB_FLOOR - (clamp(p.value, 0, maxVal) / maxVal) * (VB_FLOOR - VB_HEAD),
       }));
       const lineD = buildLinePath(coords);
       const areaD = closeArea(lineD, coords[0].x, coords[coords.length - 1].x);
