@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.8.1
+
+### Patch Changes
+
+- 33f80bc: Refine the heatmap curve: restore the more solid fill/stroke opacities and lift the curve baseline so even the lowest-heat point keeps a gap from the progress bar.
+
 ## 0.8.0
 
 ### Minor Changes
