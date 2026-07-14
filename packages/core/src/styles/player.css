@@ -270,6 +270,65 @@
   opacity: 1;
 }
 
+/* ---------- 播放/暂停中心闪现（类似 YouTube） ---------- */
+.sp-tap-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  z-index: 18;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sp-tap-flash-icon {
+  width: 34px;
+  height: 34px;
+  color: #fff;
+}
+
+.sp-tap-flash-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sp-tap-flash-run {
+  animation: sp-tap-flash 0.5s ease-out;
+}
+
+@keyframes sp-tap-flash {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp-tap-flash-run {
+    animation: sp-tap-flash-fade 0.5s ease-out;
+  }
+  @keyframes sp-tap-flash-fade {
+    0% {
+      opacity: 0.9;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+}
+
 /* ---------- 底部控制区 ---------- */
 .sp-bottom {
   position: absolute;

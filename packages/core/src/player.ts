@@ -5,6 +5,7 @@ import { GestureController } from './core/gestures';
 import { isFullscreen, onFullscreenChange, toggleFullscreen } from './core/fullscreen';
 import { createControls, type Controls } from './ui/controls';
 import { createOsd, type Osd } from './ui/components/osd';
+import { createTapFlash, type TapFlash } from './ui/components/tapFlash';
 import { createContextMenu, type ContextMenu } from './ui/components/contextMenu';
 import { createShortcutsOverlay, type ShortcutsOverlay } from './ui/components/shortcutsOverlay';
 import { createStatsOverlay, type StatsOverlay } from './ui/components/statsOverlay';
@@ -54,6 +55,7 @@ export class SweetPlayer {
   private gestures: GestureController;
   private controls: Controls;
   private osd: Osd;
+  private tapFlash: TapFlash;
   private stats: StatsOverlay;
   private shortcutsPanel: ShortcutsOverlay;
   private state: StateOverlay;
@@ -113,6 +115,7 @@ export class SweetPlayer {
     const hidden = new Set<ControlName>(options.hiddenControls ?? []);
 
     this.osd = createOsd();
+    this.tapFlash = createTapFlash();
     this.stats = createStatsOverlay(this.container, this.video, this.media, this.i18n);
     this.shortcutsPanel = createShortcutsOverlay(this.container, this.i18n, options.seekStep ?? 10);
     this.state = createStateOverlay(this.i18n);
@@ -165,6 +168,7 @@ export class SweetPlayer {
     this.container.appendChild(this.controls.topEl);
     this.container.appendChild(this.controls.bottomEl);
     this.container.appendChild(this.state.el);
+    this.container.appendChild(this.tapFlash.el);
     this.container.appendChild(this.osd.el);
 
     if (options.qualities?.length) this.setQualities(options.qualities);
@@ -254,7 +258,13 @@ export class SweetPlayer {
   }
 
   toggle(): void {
-    this.video.paused ? void this.play().catch(() => {}) : this.pause();
+    if (this.video.paused) {
+      this.tapFlash.flash('play');
+      void this.play().catch(() => {});
+    } else {
+      this.tapFlash.flash('pause');
+      this.pause();
+    }
   }
 
   seek(time: number): void {

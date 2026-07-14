@@ -56,7 +56,7 @@ player.destroy();
 - **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
 - **Auto quality**: HLS multi-level quality/audio tracks auto-populate menus; also supports custom lists
 - **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
-- **Heatmap**: Optional YouTube-style "most replayed" curve above the progress bar (pass `heatmap`; pure SVG, no extra deps)
+- **Heatmap**: Optional "most replayed" curve above the progress bar (pass `heatmap`)
 - **State overlays**: Buffering spinner, error retry, ended replay + auto-next countdown
 - **i18n**: Built-in zh-CN/en, custom languages supported
 - **Plugin system**: `plugins` option or `player.use(plugin)` for runtime installation
@@ -200,7 +200,7 @@ See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options
 
 ## Heatmap (Most replayed)
 
-Pass `heatmap` to render a YouTube-style "most replayed" curve above the progress bar — a bright top line with a fill fading downward. Hidden until you hover the progress bar, then it fades in and slides up; the watched portion is brighter. A toggle appears in the settings panel below Picture-in-Picture. Pure SVG, zero extra dependencies.
+Pass `heatmap` to show a "most replayed" curve above the progress bar. It appears when you hover the progress bar, and can be toggled from the settings panel.
 
 ```ts
 new SweetPlayer({

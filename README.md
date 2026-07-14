@@ -310,7 +310,7 @@ See [sweet-danmaku docs](https://github.com/leuvi/sweet-danmaku) for all options
 
 ## Heatmap (Most replayed)
 
-Pass `heatmap` to render a YouTube-style "most replayed" curve above the progress bar — a bright top line with a fill fading downward. It stays hidden until you hover the progress bar, then fades in and slides up; the watched portion is brighter. A toggle appears in the settings panel below Picture-in-Picture. Pure SVG, zero extra dependencies.
+Pass `heatmap` to show a "most replayed" curve above the progress bar. It appears when you hover the progress bar, and can be toggled from the settings panel.
 
 ```ts
 new SweetPlayer({

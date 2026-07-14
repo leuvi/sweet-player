@@ -310,7 +310,7 @@ danmaku.send({ text: '新弹幕', time: player.video.currentTime });
 
 ## 热度曲线（最多重播）
 
-传入 `heatmap` 即在进度条上方渲染 YouTube 式「最多重播」曲线 —— 顶部一条较亮描边线，下方填充向下渐隐。默认不常驻，hover 进度条时淡入并上移一点，已播放区更亮；设置面板「画中画」下方出现开关。纯 SVG，零额外依赖。
+传入 `heatmap` 即在进度条上方显示「最多重播」热度曲线。hover 进度条时显示，可在设置面板中开关。
 
 ```ts
 new SweetPlayer({
