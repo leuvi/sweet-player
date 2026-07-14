@@ -1,5 +1,12 @@
 # @sweet-player/react
 
+## 0.9.0
+
+### Patch Changes
+
+- Updated dependencies [6dc8c1a]
+  - @sweet-player/core@0.9.0
+
 ## 0.8.1
 
 ### Patch Changes
