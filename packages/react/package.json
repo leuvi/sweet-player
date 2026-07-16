@@ -1,6 +1,6 @@
 {
   "name": "@sweet-player/react",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "React component for sweet-player",
   "type": "module",
   "main": "./dist/index.cjs",

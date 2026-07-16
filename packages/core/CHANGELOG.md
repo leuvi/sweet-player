@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.10.0
+
+### Minor Changes
+
+- 3a24ff3: Add `poster` (cover image shown before playback) and `thumbnails` (WebVTT sprite preview shown on progress-bar hover) options. Both respect `hiddenControls` (`'poster'`, `'thumbnails'`) to skip initialization entirely.
+
 ## 0.9.0
 
 ### Minor Changes
