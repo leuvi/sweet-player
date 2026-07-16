@@ -409,15 +409,12 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
-/* 悬停位置指示针（游标卡尺样式），指向当前指针所在的精确位置 */
+/* 悬停位置指示针（游标卡尺样式）：上下两个三角尖对尖夹住进度条，指向当前指针所在的精确位置 */
 .sp-progress-caliper {
   position: absolute;
-  bottom: 9px;
+  bottom: 0;
   width: 0;
   height: 0;
-  border-left: 4px solid transparent;
-  border-right: 4px solid transparent;
-  border-top: 6px solid var(--sp-accent);
   transform: translateX(-50%);
   display: none;
   pointer-events: none;
@@ -425,6 +422,28 @@
 
 .sp-progress:hover .sp-progress-caliper {
   display: block;
+}
+
+.sp-progress-caliper::before,
+.sp-progress-caliper::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  transform: translateX(-50%);
+}
+
+.sp-progress-caliper::before {
+  bottom: 10px;
+  border-top: 6px solid var(--sp-accent);
+}
+
+.sp-progress-caliper::after {
+  bottom: -2px;
+  border-bottom: 6px solid var(--sp-accent);
 }
 
 .sp-progress-tooltip {
@@ -449,9 +468,11 @@
   position: absolute;
   bottom: 40px;
   display: none;
+  flex-direction: column;
+  align-items: stretch;
   border-radius: 4px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.9);
   background: #000;
   pointer-events: none;
 }
@@ -459,17 +480,16 @@
 .sp-thumb-preview-img {
   background-repeat: no-repeat;
   display: block;
+  flex-shrink: 0;
 }
 
+/* 贴在预览图下方的时间条 */
 .sp-thumb-preview-time {
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  transform: translateX(-50%);
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.75);
-  border-radius: 3px;
+  text-align: center;
+  padding: 1px 6px;
+  background: rgba(0, 0, 0, 0.85);
   font-size: 11px;
+  line-height: 1.5;
   color: #fff;
   white-space: nowrap;
   pointer-events: none;

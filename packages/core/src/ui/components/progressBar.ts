@@ -171,8 +171,8 @@ export function createProgressBar(
       lastThumbUrl = cue.url;
     }
     thumbImg.style.backgroundPosition = `-${cue.x ?? 0}px -${cue.y ?? 0}px`;
+    // 时间条贴在预览图下方，wrap 高度交给 flex 布局按内容自然撑开
     thumbWrap.style.width = `${w}px`;
-    thumbWrap.style.height = `${h}px`;
     thumbImg.style.width = `${w}px`;
     thumbImg.style.height = `${h}px`;
 
@@ -181,7 +181,7 @@ export function createProgressBar(
     const center = ratio * rect.width;
     const left = clamp(center, halfW, rect.width - halfW) - halfW;
     thumbWrap.style.left = `${left}px`;
-    thumbWrap.style.display = 'block';
+    thumbWrap.style.display = 'flex';
   }
 
   let dragging = false;
