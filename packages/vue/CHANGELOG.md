@@ -1,5 +1,12 @@
 # @sweet-player/vue
 
+## 0.10.1
+
+### Patch Changes
+
+- Updated dependencies [d1942a5]
+  - @sweet-player/core@0.10.1
+
 ## 0.10.0
 
 ### Patch Changes
