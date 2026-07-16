@@ -129,18 +129,24 @@ export function createProgressBar(
   const buffered = createEl('div', { className: 'sp-progress-buffered', parent: track });
   const played = createEl('div', { className: 'sp-progress-played', parent: track });
   const thumb = createEl('div', { className: 'sp-progress-thumb', parent: track });
-  const tooltip = createEl('div', { className: 'sp-progress-tooltip', text: '0:00', parent: root });
+  /** 悬停位置指示针（游标卡尺样式），始终跟随指针，与预览图/时间提示是否开启无关 */
+  const caliper = createEl('div', { className: 'sp-progress-caliper', parent: root });
 
   // ---- 缩略图预览（可选）----
   const hasThumbnails = !!thumbnailsUrl;
   let thumbCues: ThumbnailCue[] = [];
   let thumbWrap: HTMLElement | null = null;
   let thumbImg: HTMLElement | null = null;
+  let thumbTime: HTMLElement | null = null;
   let lastThumbUrl = '';
+
+  // 未开启预览图时用悬浮时间提示；开启时时间显示在预览图内部，不再单独出现
+  const tooltip = hasThumbnails ? null : createEl('div', { className: 'sp-progress-tooltip', text: '0:00', parent: root });
 
   if (hasThumbnails) {
     thumbWrap = createEl('div', { className: 'sp-thumb-preview', parent: root });
     thumbImg = createEl('div', { className: 'sp-thumb-preview-img', parent: thumbWrap });
+    thumbTime = createEl('div', { className: 'sp-thumb-preview-time', text: '0:00', parent: thumbWrap });
     parseThumbnailVtt(thumbnailsUrl!)
       .then((cues) => {
         thumbCues = cues;
@@ -149,8 +155,10 @@ export function createProgressBar(
   }
 
   function updateThumbPreview(ratio: number): void {
-    if (!thumbWrap || !thumbImg || thumbCues.length === 0) return;
+    if (!thumbWrap || !thumbImg || !thumbTime) return;
     const duration = video.duration || 0;
+    thumbTime.textContent = formatTime(ratio * duration);
+    if (thumbCues.length === 0) return;
     const cue = findThumbnailCue(thumbCues, ratio * duration);
     if (!cue) {
       thumbWrap.style.display = 'none';
@@ -205,9 +213,13 @@ export function createProgressBar(
 
   function onPointerMove(e: PointerEvent): void {
     const ratio = ratioFromEvent(e);
-    tooltip.style.left = `${ratio * 100}%`;
-    tooltip.textContent = formatTime(ratio * (video.duration || 0));
-    if (hasThumbnails) updateThumbPreview(ratio);
+    caliper.style.left = `${ratio * 100}%`;
+    if (hasThumbnails) {
+      updateThumbPreview(ratio);
+    } else if (tooltip) {
+      tooltip.style.left = `${ratio * 100}%`;
+      tooltip.textContent = formatTime(ratio * (video.duration || 0));
+    }
     if (dragging) render(ratio);
   }
 

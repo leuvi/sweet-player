@@ -409,9 +409,27 @@
   transform: translate(-50%, -50%) scale(1);
 }
 
+/* 悬停位置指示针（游标卡尺样式），指向当前指针所在的精确位置 */
+.sp-progress-caliper {
+  position: absolute;
+  bottom: 9px;
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 6px solid var(--sp-accent);
+  transform: translateX(-50%);
+  display: none;
+  pointer-events: none;
+}
+
+.sp-progress:hover .sp-progress-caliper {
+  display: block;
+}
+
 .sp-progress-tooltip {
   position: absolute;
-  bottom: 18px;
+  bottom: 28px;
   transform: translateX(-50%);
   padding: 2px 6px;
   background: rgba(0, 0, 0, 0.8);
@@ -433,7 +451,7 @@
   display: none;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   background: #000;
   pointer-events: none;
 }
@@ -441,6 +459,20 @@
 .sp-thumb-preview-img {
   background-repeat: no-repeat;
   display: block;
+}
+
+.sp-thumb-preview-time {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 3px;
+  font-size: 11px;
+  color: #fff;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* ---------- 热度曲线（Most replayed） ---------- */
