@@ -87,6 +87,8 @@ const player = new SweetPlayer({
   autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
   locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
   heatmap: [{ time: 5, value: 88 }], // Most-replayed curve above the progress bar (values auto-normalized)
+  poster: '/poster.webp',        // Cover image shown before playback starts
+  thumbnails: '/thumbs.vtt',     // WebVTT thumbnail track for progress-bar hover preview
   hiddenControls: ['ratio'],     // Hide specific UI controls, all shown by default
   plugins: [],                   // Plugin list
   onPrev: () => {},
@@ -338,6 +340,32 @@ new SweetPlayer({ container: '#player', src, heatmap });
 
 To disable it entirely so none of the curve logic is initialized, add `'heatmap'` to `hiddenControls`.
 
+## Poster & Preview Thumbnails
+
+`poster` sets a cover image shown before playback starts:
+
+```ts
+new SweetPlayer({ container: '#player', src, poster: '/poster.webp' });
+```
+
+`thumbnails` shows a preview image when hovering the progress bar. Point it at a WebVTT file where each cue's payload is an image URL, optionally with a `#xywh=x,y,w,h` fragment to crop a region out of a sprite sheet:
+
+```ts
+new SweetPlayer({ container: '#player', src, thumbnails: '/thumbs.vtt' });
+```
+
+```vtt
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+sprite.jpg#xywh=0,0,160,90
+
+00:00:10.000 --> 00:00:20.000
+sprite.jpg#xywh=160,0,160,90
+```
+
+Image URLs in the VTT are resolved relative to the VTT file's own URL. To disable it entirely, add `'thumbnails'` to `hiddenControls`.
+
 ## Hidden Controls
 
 `hiddenControls` hides specific UI features (all shown by default; only affects UI, not API or shortcuts):
@@ -346,7 +374,7 @@ To disable it entirely so none of the curve logic is initialized, add `'heatmap'
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `settings` `fullscreen` `title` `progress` `contextMenu`
+Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `thumbnails` `settings` `fullscreen` `title` `progress` `contextMenu`
 
 ## Customization
 

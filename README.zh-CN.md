@@ -87,6 +87,8 @@ const player = new SweetPlayer({
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
   locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
   heatmap: [{ time: 5, value: 88 }], // 进度条上方热度曲线（最多重播），value 自动归一化
+  poster: '/poster.webp',        // 播放开始前显示的封面图
+  thumbnails: '/thumbs.vtt',     // 进度条悬停预览图的 WebVTT 地址
   hiddenControls: ['ratio'],     // 不显示的功能，默认全显示
   plugins: [],                   // 插件列表
   onPrev: () => {},
@@ -338,6 +340,32 @@ new SweetPlayer({ container: '#player', src, heatmap });
 
 若要彻底禁用（连曲线逻辑都不初始化），把 `'heatmap'` 加入 `hiddenControls`。
 
+## 封面图与预览图
+
+`poster` 设置播放开始前显示的封面图：
+
+```ts
+new SweetPlayer({ container: '#player', src, poster: '/poster.webp' });
+```
+
+`thumbnails` 在 hover 进度条时显示预览图。传入一个 WebVTT 文件地址，每个 cue 的内容是图片 URL，可选 `#xywh=x,y,w,h` 表示从雪碧图中截取的区域：
+
+```ts
+new SweetPlayer({ container: '#player', src, thumbnails: '/thumbs.vtt' });
+```
+
+```vtt
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+sprite.jpg#xywh=0,0,160,90
+
+00:00:10.000 --> 00:00:20.000
+sprite.jpg#xywh=160,0,160,90
+```
+
+VTT 中的图片地址相对于 VTT 文件自身解析。若要彻底禁用，把 `'thumbnails'` 加入 `hiddenControls`。
+
 ## 隐藏功能
 
 `hiddenControls` 收集不显示的功能（默认全显示，只影响 UI，不影响 API 与快捷键）：
@@ -346,7 +374,7 @@ new SweetPlayer({ container: '#player', src, heatmap });
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-可选值：`prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `settings` `fullscreen` `title` `progress` `contextMenu`
+可选值：`prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `thumbnails` `settings` `fullscreen` `title` `progress` `contextMenu`
 
 ## 定制
 

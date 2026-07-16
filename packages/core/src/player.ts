@@ -98,6 +98,10 @@ export class SweetPlayer {
       parent: this.container,
     });
 
+    const hidden = new Set<ControlName>(options.hiddenControls ?? []);
+    // 'poster' 被隐藏时不设置该属性，避免不必要的封面图请求
+    if (options.poster && !hidden.has('poster')) this.video.poster = options.poster;
+
     // 音量/倍速：localStorage 偏好优先于选项默认值
     const persist = options.persist !== false;
     const prefs = persist ? loadPrefs() : {};
@@ -111,8 +115,6 @@ export class SweetPlayer {
       onAudioTracks:
         autoQuality && !options.audioTracks?.length ? (tracks) => this.applyHlsAudioTracks(tracks) : undefined,
     });
-
-    const hidden = new Set<ControlName>(options.hiddenControls ?? []);
 
     this.osd = createOsd();
     this.tapFlash = createTapFlash();
@@ -149,6 +151,7 @@ export class SweetPlayer {
       aspectRatios: options.aspectRatios ?? DEFAULT_RATIOS,
       seekStep: options.seekStep ?? 10,
       heatmap: options.heatmap,
+      thumbnails: options.thumbnails,
       hidden,
       actions: {
         togglePlay: () => this.toggle(),

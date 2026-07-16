@@ -57,6 +57,7 @@ player.destroy();
 - **Auto quality**: HLS multi-level quality/audio tracks auto-populate menus; also supports custom lists
 - **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
 - **Heatmap**: Optional "most replayed" curve above the progress bar (pass `heatmap`)
+- **Poster & preview thumbnails**: Cover image before playback (`poster`), progress-bar hover preview from a WebVTT track (`thumbnails`)
 - **State overlays**: Buffering spinner, error retry, ended replay + auto-next countdown
 - **i18n**: Built-in zh-CN/en, custom languages supported
 - **Plugin system**: `plugins` option or `player.use(plugin)` for runtime installation
@@ -226,6 +227,32 @@ new SweetPlayer({ container: '#player', src, heatmap });
 ```
 
 To disable it entirely (no curve logic initialized), add `'heatmap'` to `hiddenControls`.
+
+## Poster & Preview Thumbnails
+
+`poster` sets a cover image shown before playback starts:
+
+```ts
+new SweetPlayer({ container: '#player', src, poster: '/poster.webp' });
+```
+
+`thumbnails` shows a preview image when hovering the progress bar. Point it at a WebVTT file where each cue's payload is an image URL, optionally with a `#xywh=x,y,w,h` fragment to crop a region out of a sprite sheet:
+
+```ts
+new SweetPlayer({ container: '#player', src, thumbnails: '/thumbs.vtt' });
+```
+
+```vtt
+WEBVTT
+
+00:00:00.000 --> 00:00:10.000
+sprite.jpg#xywh=0,0,160,90
+
+00:00:10.000 --> 00:00:20.000
+sprite.jpg#xywh=160,0,160,90
+```
+
+Image URLs in the VTT are resolved relative to the VTT file's own URL. To disable it entirely, add `'thumbnails'` to `hiddenControls`.
 
 ## Instance API
 

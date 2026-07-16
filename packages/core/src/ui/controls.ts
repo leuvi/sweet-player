@@ -17,6 +17,8 @@ export interface ControlsContext {
   seekStep: number;
   /** 热度曲线数据，存在时进度条上方渲染曲线并在设置面板出现开关 */
   heatmap?: HeatmapPoint[];
+  /** 缩略图预览 VTT 地址，存在时 hover 进度条显示预览图 */
+  thumbnails?: string;
   /** 不渲染的功能集合 */
   hidden: Set<ControlName>;
   actions: {
@@ -65,9 +67,11 @@ export function createControls(ctx: ControlsContext): Controls {
 
   // 'heatmap' 或 'progress' 被隐藏时不传数据，热度曲线的构建逻辑完全不初始化
   const heatmapData = show('progress') && show('heatmap') ? ctx.heatmap : undefined;
+  // 'thumbnails' 或 'progress' 被隐藏时不传 VTT 地址，预览图的加载/构建逻辑完全不初始化
+  const thumbnailsUrl = show('progress') && show('thumbnails') ? ctx.thumbnails : undefined;
   const progress = createProgressBar(video, (t) => {
     video.currentTime = t;
-  }, heatmapData);
+  }, heatmapData, thumbnailsUrl);
   if (show('progress')) bottomEl.appendChild(progress.el);
   const hasHeatmap = !!heatmapData?.length;
   let heatmapVisible = true;

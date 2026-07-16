@@ -1,5 +1,7 @@
 import { createEl } from '../../utils/dom';
 import { clamp, formatTime } from '../../utils/time';
+import { findThumbnailCue, parseThumbnailVtt, type ThumbnailCue } from '../../utils/vtt';
+import { log } from '../../logger';
 import type { HeatmapPoint } from '../../types';
 
 export interface ProgressBar {
@@ -52,6 +54,7 @@ export function createProgressBar(
   video: HTMLVideoElement,
   onSeek: (time: number) => void,
   heatmap?: HeatmapPoint[],
+  thumbnailsUrl?: string,
 ): ProgressBar {
   const root = createEl('div', { className: 'sp-progress' });
 
@@ -128,6 +131,51 @@ export function createProgressBar(
   const thumb = createEl('div', { className: 'sp-progress-thumb', parent: track });
   const tooltip = createEl('div', { className: 'sp-progress-tooltip', text: '0:00', parent: root });
 
+  // ---- 缩略图预览（可选）----
+  const hasThumbnails = !!thumbnailsUrl;
+  let thumbCues: ThumbnailCue[] = [];
+  let thumbWrap: HTMLElement | null = null;
+  let thumbImg: HTMLElement | null = null;
+  let lastThumbUrl = '';
+
+  if (hasThumbnails) {
+    thumbWrap = createEl('div', { className: 'sp-thumb-preview', parent: root });
+    thumbImg = createEl('div', { className: 'sp-thumb-preview-img', parent: thumbWrap });
+    parseThumbnailVtt(thumbnailsUrl!)
+      .then((cues) => {
+        thumbCues = cues;
+      })
+      .catch((err) => log('预览图', `VTT 加载失败: ${String(err)}`));
+  }
+
+  function updateThumbPreview(ratio: number): void {
+    if (!thumbWrap || !thumbImg || thumbCues.length === 0) return;
+    const duration = video.duration || 0;
+    const cue = findThumbnailCue(thumbCues, ratio * duration);
+    if (!cue) {
+      thumbWrap.style.display = 'none';
+      return;
+    }
+    const w = cue.w ?? 160;
+    const h = cue.h ?? 90;
+    if (cue.url !== lastThumbUrl) {
+      thumbImg.style.backgroundImage = `url("${cue.url}")`;
+      lastThumbUrl = cue.url;
+    }
+    thumbImg.style.backgroundPosition = `-${cue.x ?? 0}px -${cue.y ?? 0}px`;
+    thumbWrap.style.width = `${w}px`;
+    thumbWrap.style.height = `${h}px`;
+    thumbImg.style.width = `${w}px`;
+    thumbImg.style.height = `${h}px`;
+
+    const rect = root.getBoundingClientRect();
+    const halfW = Math.min(w / 2, rect.width / 2);
+    const center = ratio * rect.width;
+    const left = clamp(center, halfW, rect.width - halfW) - halfW;
+    thumbWrap.style.left = `${left}px`;
+    thumbWrap.style.display = 'block';
+  }
+
   let dragging = false;
 
   function ratioFromEvent(e: PointerEvent): number {
@@ -159,6 +207,7 @@ export function createProgressBar(
     const ratio = ratioFromEvent(e);
     tooltip.style.left = `${ratio * 100}%`;
     tooltip.textContent = formatTime(ratio * (video.duration || 0));
+    if (hasThumbnails) updateThumbPreview(ratio);
     if (dragging) render(ratio);
   }
 
@@ -183,6 +232,11 @@ export function createProgressBar(
     dragging = false;
     root.classList.remove('sp-dragging');
   });
+  if (hasThumbnails) {
+    root.addEventListener('pointerleave', () => {
+      if (thumbWrap) thumbWrap.style.display = 'none';
+    });
+  }
 
   return {
     el: root,

@@ -426,6 +426,23 @@
   display: block;
 }
 
+/* ---------- 进度条缩略图预览 ---------- */
+.sp-thumb-preview {
+  position: absolute;
+  bottom: 40px;
+  display: none;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.15);
+  background: #000;
+  pointer-events: none;
+}
+
+.sp-thumb-preview-img {
+  background-repeat: no-repeat;
+  display: block;
+}
+
 /* ---------- 热度曲线（Most replayed） ---------- */
 /* 开关开启时也不常驻，仅 hover 进度条时淡入并上移一点 */
 .sp-heatmap {
