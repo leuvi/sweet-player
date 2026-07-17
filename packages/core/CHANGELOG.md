@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.10.5
+
+### Patch Changes
+
+- ef10842: Move the time label to a fixed position above the hover caliper (no longer coupled to the thumbnail preview) and preload sprite images once the VTT track loads, so hovering the progress bar never shows a black tile while the image is still fetching.
+
 ## 0.10.4
 
 ### Patch Changes
