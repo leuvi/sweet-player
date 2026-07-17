@@ -1,5 +1,17 @@
 # @sweet-player/core
 
+## 1.0.0
+
+### Major Changes
+
+- 160c645: **1.0.0 — first stable release.**
+
+  MPEG-DASH support. `.mpd` sources are played through `dashjs` (loaded on demand), while `.m3u8` sources continue to use `hls.js`. Everything else plays through the native `<video>`. Only the engine you actually use is downloaded.
+
+  New option: `dashConfig` — passed through to dashjs `updateSettings`, mirroring the existing `hlsConfig`.
+
+  The engine layer is now pluggable internally, so quality / audio-track / bandwidth reporting works identically across HLS and DASH.
+
 ## 0.10.5
 
 ### Patch Changes
