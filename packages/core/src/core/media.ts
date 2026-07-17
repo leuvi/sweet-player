@@ -1,37 +1,31 @@
-import Hls from 'hls.js';
 import type { EventEmitter } from './events';
 import { log } from '../logger';
+import type { EngineCallbacks, MediaEngine } from './engines/types';
+
+// 类型再导出：老代码引用 HlsLevelInfo/HlsAudioTrackInfo 的地方仍能工作
+export type { LevelInfo as HlsLevelInfo, AudioTrackInfo as HlsAudioTrackInfo } from './engines/types';
 
 function isHlsSource(src: string): boolean {
   return /\.m3u8($|\?)/i.test(src);
 }
 
-export interface HlsLevelInfo {
-  /** hls.js level 索引，-1 表示自动 */
-  index: number;
-  height: number;
-  bitrate: number;
-  label: string;
-}
-
-export interface HlsAudioTrackInfo {
-  index: number;
-  label: string;
+function isDashSource(src: string): boolean {
+  return /\.mpd($|\?)/i.test(src);
 }
 
 export interface MediaCallbacks {
-  /** manifest 解析出多个画质档位时回调（含"自动"档 index=-1） */
-  onLevels?(levels: HlsLevelInfo[]): void;
-  onAudioTracks?(tracks: HlsAudioTrackInfo[]): void;
+  onLevels?: EngineCallbacks['onLevels'];
+  onAudioTracks?: EngineCallbacks['onAudioTracks'];
 }
 
 /**
- * 媒体加载层：m3u8 优先走 hls.js，不支持 MSE 时回退 Safari 原生 HLS，
- * 其余格式直接赋给 video.src。
+ * 媒体编排层：按 src 类型选择引擎（hls.js / dash.js）动态加载，
+ * 其余格式直接赋给 video.src。原生 HLS（Safari）在 hls.js 不支持时降级使用。
  */
 export class MediaController {
-  hls: Hls | null = null;
-  /** 最近一次加载的地址，错误重试用 */
+  private engine: MediaEngine | null = null;
+  /** 每次 load 递增，避免异步 import 竞态：后来的 load 应该覆盖先来的 */
+  private loadSeq = 0;
   currentSrc = '';
 
   constructor(
@@ -39,56 +33,59 @@ export class MediaController {
     private emitter: EventEmitter,
     private hlsConfig?: Record<string, unknown>,
     private callbacks: MediaCallbacks = {},
+    private dashConfig?: Record<string, unknown>,
   ) {}
 
   load(src: string): void {
-    this.detachHls();
+    const seq = ++this.loadSeq;
+    this.detachEngine();
     this.currentSrc = src;
     log('播放器', `加载源: ${src}`);
 
+    const engineCallbacks: EngineCallbacks = {
+      onLevels: this.callbacks.onLevels,
+      onAudioTracks: this.callbacks.onAudioTracks,
+      onError: (payload) => this.emitter.emit('error', payload),
+    };
+
+    if (isDashSource(src)) {
+      void (async () => {
+        try {
+          const { createDashEngine } = await import('./engines/dashEngine');
+          if (seq !== this.loadSeq) return; // 被后续 load 覆盖，丢弃本次
+          this.engine = createDashEngine(this.video, src, engineCallbacks, this.dashConfig);
+        } catch (err) {
+          if (seq !== this.loadSeq) return;
+          log('dash事件', `引擎加载失败: ${String(err)}`);
+          this.emitter.emit('error', { type: 'dash-unsupported', detail: err });
+        }
+      })();
+      return;
+    }
+
     if (isHlsSource(src)) {
-      if (Hls.isSupported()) {
-        this.hls = new Hls(this.hlsConfig);
-        this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-          log('hls事件', '媒体成功附加到播放器');
-        });
-        this.hls.on(Hls.Events.ERROR, (_event, data) => {
-          log('hls事件', `${data.fatal ? '致命' : ''}错误: ${data.type} - ${data.details}`);
-          if (data.fatal) {
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                this.emitter.emit('error', { type: 'hls-network', detail: data });
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                this.hls?.recoverMediaError();
-                break;
-              default:
-                this.emitter.emit('error', { type: 'hls-fatal', detail: data });
-                this.detachHls();
-            }
+      void (async () => {
+        try {
+          const [{ createHlsEngine }, { default: Hls }] = await Promise.all([
+            import('./engines/hlsEngine'),
+            import('hls.js'),
+          ]);
+          if (seq !== this.loadSeq) return;
+          if (Hls.isSupported()) {
+            this.engine = createHlsEngine(this.video, src, engineCallbacks, this.hlsConfig);
+            return;
           }
-        });
-        this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          log('hls事件', '播放清单解析完毕');
-          this.notifyTracks();
-        });
-        this.hls.on(Hls.Events.BUFFER_CREATED, () => {
-          log('hls事件', '缓冲区创建');
-        });
-        this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
-          const level = this.hls?.levels[data.level];
-          const label = level?.height ? `${level.height}P` : `Level ${data.level}`;
-          log('hls事件', `画质档位切换: ${label}`);
-        });
-        this.hls.loadSource(src);
-        this.hls.attachMedia(this.video);
-        return;
-      }
-      if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
-        this.video.src = src;
-        return;
-      }
-      this.emitter.emit('error', { type: 'hls-unsupported' });
+          if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
+            this.video.src = src;
+            return;
+          }
+          this.emitter.emit('error', { type: 'hls-unsupported' });
+        } catch (err) {
+          if (seq !== this.loadSeq) return;
+          log('hls事件', `引擎加载失败: ${String(err)}`);
+          this.emitter.emit('error', { type: 'hls-unsupported', detail: err });
+        }
+      })();
       return;
     }
 
@@ -100,57 +97,35 @@ export class MediaController {
     if (this.currentSrc) this.load(this.currentSrc);
   }
 
-  private notifyTracks(): void {
-    if (!this.hls) return;
-    if (this.hls.levels.length > 1 && this.callbacks.onLevels) {
-      const levels: HlsLevelInfo[] = this.hls.levels
-        .map((l, i) => ({
-          index: i,
-          height: l.height,
-          bitrate: l.bitrate,
-          label: l.height ? `${l.height}P` : `${Math.round(l.bitrate / 1000)}kbps`,
-        }))
-        .sort((a, b) => b.height - a.height);
-      this.callbacks.onLevels(levels);
-    }
-    if (this.hls.audioTracks.length > 1 && this.callbacks.onAudioTracks) {
-      this.callbacks.onAudioTracks(
-        this.hls.audioTracks.map((t, i) => ({ index: i, label: t.name || t.lang || `Track ${i + 1}` })),
-      );
-    }
-  }
-
-  /** 切换 hls 画质档位，-1 为自动 */
+  /** 切换当前引擎的画质档位，-1 为自动 */
   setLevel(index: number): void {
-    if (this.hls) this.hls.currentLevel = index;
+    this.engine?.setLevel(index);
   }
 
   setAudioTrack(index: number): void {
-    if (this.hls) this.hls.audioTrack = index;
+    this.engine?.setAudioTrack(index);
   }
 
-  /** hls.js 带宽估算（bps），统计面板用 */
+  /** 当前引擎带宽估算（bps），统计面板用 */
   get bandwidthEstimate(): number | undefined {
-    return this.hls?.bandwidthEstimate;
+    return this.engine?.bandwidthEstimate;
   }
 
-  /** 当前 hls level 描述，统计面板用 */
+  /** 当前档位描述，统计面板用 */
   get currentLevelInfo(): string | undefined {
-    if (!this.hls || this.hls.currentLevel < 0) return undefined;
-    const level = this.hls.levels[this.hls.currentLevel];
-    if (!level) return undefined;
-    return `${level.width}x${level.height}@${Math.round(level.bitrate / 1000)}kbps`;
+    return this.engine?.currentLevelInfo;
   }
 
-  private detachHls(): void {
-    if (this.hls) {
-      this.hls.destroy();
-      this.hls = null;
+  private detachEngine(): void {
+    if (this.engine) {
+      this.engine.destroy();
+      this.engine = null;
     }
   }
 
   destroy(): void {
-    this.detachHls();
+    this.loadSeq++; // 让任何进行中的异步 load 失效
+    this.detachEngine();
     this.video.removeAttribute('src');
     this.video.load();
   }

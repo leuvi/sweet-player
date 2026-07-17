@@ -122,6 +122,8 @@ export interface SweetPlayerOptions {
   plugins?: SweetPlayerPlugin[];
   /** 透传给 hls.js 的配置 */
   hlsConfig?: Record<string, unknown>;
+  /** 透传给 dash.js 的 updateSettings 配置 */
+  dashConfig?: Record<string, unknown>;
   /** 点击"上一个"回调（预留） */
   onPrev?: () => void;
   /** 点击"下一个"回调（预留） */

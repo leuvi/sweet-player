@@ -8,7 +8,7 @@ English | [中文](README.zh-CN.md)
 [![license](https://img.shields.io/github/license/leuvi/sweet-player)](./LICENSE)
 [![live demo](https://img.shields.io/badge/demo-player.sweetui.com-ff4d6d)](https://player.sweetui.com)
 
-A custom video player built on hls.js. Zero framework dependency at its core, with React / Vue / vanilla JS support. Written in TypeScript.
+A custom video player supporting HLS (hls.js) and MPEG-DASH (dashjs). Zero framework dependency at its core, with React / Vue / vanilla JS support. Written in TypeScript.
 
 **Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
@@ -23,6 +23,8 @@ npm install @sweet-player/core
 | `@sweet-player/core` | Core player (full UI included), for vanilla JS or as the base for framework wrappers |
 | `@sweet-player/react` | React component wrapper |
 | `@sweet-player/vue` | Vue component wrapper |
+
+`hls.js` and `dashjs` are peer/optional dependencies loaded on demand: `.m3u8` sources pull in `hls.js`, `.mpd` sources pull in `dashjs`; any other source plays through the native `<video>`. Only the engine you actually use is downloaded.
 
 ## Quick Start
 
@@ -82,13 +84,15 @@ const player = new SweetPlayer({
   seekStep: 10,                  // Seek step in seconds
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   playbackRates: [0.5, 1, 1.5, 2],
-  autoQuality: true,             // Default true: auto-populate quality menu from HLS levels
+  autoQuality: true,             // Default true: auto-populate quality menu from HLS/DASH levels
   persist: true,                 // Default true: remember volume/mute/rate in localStorage
   autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
   locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
   heatmap: [{ time: 5, value: 88 }], // Most-replayed curve above the progress bar (values auto-normalized)
   poster: '/poster.webp',        // Cover image shown before playback starts
   thumbnails: '/thumbs.vtt',     // WebVTT thumbnail track for progress-bar hover preview
+  hlsConfig: {},                 // Passed through to `new Hls(config)` for .m3u8 sources
+  dashConfig: {},                // Passed through to dashjs `updateSettings` for .mpd sources
   hiddenControls: ['ratio'],     // Hide specific UI controls, all shown by default
   plugins: [],                   // Plugin list
   onPrev: () => {},
@@ -153,7 +157,7 @@ player.on('error', ({ type, detail }) => {});
 
 ## Quality / Audio Tracks
 
-- **Auto mode (default)**: HLS multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets hls.js ABR decide.
+- **Auto mode (default)**: HLS / DASH multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets the underlying engine's ABR decide.
 - **Manual mode**: Pass `qualities` / `audioTracks` for custom lists. Switching triggers `onQualityChange` / `onAudioTrackChange` callbacks. If `QualityLevel.src` is provided, the player auto-switches source while preserving playback position. Use `setQualities()` / `setAudioTracks()` to update at runtime.
 
 ## Controls

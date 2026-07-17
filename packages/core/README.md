@@ -1,6 +1,6 @@
 # @sweet-player/core
 
-A custom video player built on hls.js. Zero framework dependency, written in TypeScript. Supports vanilla JS / React / Vue.
+A custom video player supporting HLS (hls.js) and MPEG-DASH (dashjs). Zero framework dependency, written in TypeScript. Supports vanilla JS / React / Vue.
 
 **Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
@@ -11,6 +11,8 @@ A custom video player built on hls.js. Zero framework dependency, written in Typ
 ```bash
 npm install @sweet-player/core
 ```
+
+`hls.js` and `dashjs` are loaded on demand: `.m3u8` sources pull in `hls.js`, `.mpd` sources pull in `dashjs`, any other source plays through the native `<video>`. Only the engine you actually use is downloaded.
 
 Or include via `<script>` tag (IIFE build):
 
@@ -35,10 +37,12 @@ const player = new SweetPlayer({
   seekStep: 10,                  // Seek step in seconds
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   playbackRates: [0.5, 1, 1.5, 2],
-  autoQuality: true,             // Default true: auto-populate quality menu from HLS levels (includes "Auto")
+  autoQuality: true,             // Default true: auto-populate quality menu from HLS/DASH levels (includes "Auto")
   persist: true,                 // Default true: remember volume/mute/playback rate in localStorage
   autoNext: 5,                   // Auto-play next after 5s countdown on ended (requires onNext)
   locale: 'en',                  // Built-in: 'zh-CN' / 'en'; extend with registerLocale
+  hlsConfig: {},                 // Passed through to `new Hls(config)` for .m3u8 sources
+  dashConfig: {},                // Passed through to dashjs `updateSettings` for .mpd sources
   onPrev: () => {},
   onNext: () => {},
   onQualityChange: (q) => {},
@@ -54,7 +58,7 @@ player.destroy();
 - **Full UI controls**: Play/pause, seek, progress bar (drag + buffer), playback rate, quality, aspect ratio, audio track, volume, fullscreen, PiP
 - **Keyboard shortcuts**: Space for play/pause, arrow keys for seeking (hold for accelerating seek 10→30→60 s/s), ↑↓ for volume, F for fullscreen, M for mute
 - **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
-- **Auto quality**: HLS multi-level quality/audio tracks auto-populate menus; also supports custom lists
+- **Auto quality**: HLS / DASH multi-level quality/audio tracks auto-populate menus; also supports custom lists
 - **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
 - **Heatmap**: Optional "most replayed" curve above the progress bar (pass `heatmap`)
 - **Poster & preview thumbnails**: Cover image before playback (`poster`), progress-bar hover preview from a WebVTT track (`thumbnails`)
@@ -67,7 +71,7 @@ player.destroy();
 
 ## Quality / Audio Tracks
 
-- **Auto mode (default)**: HLS multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets hls.js ABR decide.
+- **Auto mode (default)**: HLS / DASH multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets the underlying engine's ABR decide.
 - **Manual mode**: Pass `qualities` / `audioTracks` for custom lists; switching triggers callbacks. Use `setQualities()` / `setAudioTracks()` to update at runtime.
 
 ## Plugins

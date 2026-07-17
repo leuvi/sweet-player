@@ -6,17 +6,17 @@ const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 
 const define = { __SP_VERSION__: JSON.stringify(pkg.version) };
 
 export default defineConfig([
-  // ESM + CJS：hls.js 作为外部依赖
+  // ESM + CJS：hls.js / dash.js 作为外部依赖，通过动态 import 按需加载
   {
     entry: { index: 'src/index.ts' },
     format: ['esm', 'cjs'],
     dts: true,
     clean: true,
     loader: cssAsText,
-    external: ['hls.js'],
+    external: ['hls.js', 'dashjs'],
     define,
   },
-  // IIFE 全局构建：内联 hls.js，供 <script> 直接引入，暴露 window.SweetPlayer
+  // IIFE 全局构建：内联 hls.js 和 dash.js，供 <script> 直接引入，暴露 window.SweetPlayer
   {
     entry: { 'sweet-player': 'src/global.ts' },
     format: ['iife'],

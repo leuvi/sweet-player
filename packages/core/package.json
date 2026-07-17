@@ -41,6 +41,7 @@
     "vue"
   ],
   "dependencies": {
+    "dashjs": "^5",
     "hls.js": "^1.5.18"
   },
   "devDependencies": {

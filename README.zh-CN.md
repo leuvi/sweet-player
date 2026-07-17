@@ -8,7 +8,7 @@
 [![license](https://img.shields.io/github/license/leuvi/sweet-player)](./LICENSE)
 [![live demo](https://img.shields.io/badge/demo-player.sweetui.com-ff4d6d)](https://player.sweetui.com)
 
-基于 hls.js 的自定义视频播放器，核心零框架依赖，支持 React / Vue / 原生 JS，TypeScript 编写。
+支持 HLS（hls.js）和 MPEG-DASH（dashjs）的自定义视频播放器，核心零框架依赖，支持 React / Vue / 原生 JS，TypeScript 编写。
 
 **在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
@@ -23,6 +23,8 @@ npm install @sweet-player/core
 | `@sweet-player/core` | 核心播放器（含完整 UI），原生 JS 直接使用 |
 | `@sweet-player/react` | React 组件封装 |
 | `@sweet-player/vue` | Vue 组件封装 |
+
+`hls.js` 和 `dashjs` 按需加载：`.m3u8` 源自动引入 `hls.js`，`.mpd` 源自动引入 `dashjs`，其余源直接走原生 `<video>`。只有实际用到的引擎会下载。
 
 ## 快速开始
 
@@ -82,13 +84,15 @@ const player = new SweetPlayer({
   seekStep: 10,                  // 快进快退秒数
   longSeek: { steps: [10, 30, 60], stepUpInterval: 2000 },
   playbackRates: [0.5, 1, 1.5, 2],
-  autoQuality: true,             // 默认 true：自动读取 hls levels 填充画质菜单
+  autoQuality: true,             // 默认 true：自动读取 HLS / DASH levels 填充画质菜单
   persist: true,                 // 默认 true：记忆音量/静音/倍速
   autoNext: 5,                   // 播完 5 秒倒计时自动下一个（需配合 onNext）
   locale: 'zh-CN',               // 内置 zh-CN / en，registerLocale 可扩展
   heatmap: [{ time: 5, value: 88 }], // 进度条上方热度曲线（最多重播），value 自动归一化
   poster: '/poster.webp',        // 播放开始前显示的封面图
   thumbnails: '/thumbs.vtt',     // 进度条悬停预览图的 WebVTT 地址
+  hlsConfig: {},                 // 透传给 `new Hls(config)`（.m3u8 源生效）
+  dashConfig: {},                // 透传给 dashjs 的 `updateSettings`（.mpd 源生效）
   hiddenControls: ['ratio'],     // 不显示的功能，默认全显示
   plugins: [],                   // 插件列表
   onPrev: () => {},
@@ -153,7 +157,7 @@ player.on('error', ({ type, detail }) => {});
 
 ## 画质 / 音轨
 
-- **自动模式（默认）**：HLS 流有多档画质/音轨时自动填充菜单，选择"自动"由 hls.js ABR 决定。
+- **自动模式（默认）**：HLS / DASH 流有多档画质/音轨时自动填充菜单，选择"自动"由对应引擎的 ABR 决定。
 - **业务模式**：传入 `qualities` / `audioTracks` 列表则以业务为准，切换通过 `onQualityChange` / `onAudioTrackChange` 回调；`QualityLevel.src` 传了地址会自动换源并保持进度。运行时可用 `setQualities()` / `setAudioTracks()` 更新。
 
 ## 交互

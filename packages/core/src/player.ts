@@ -1,5 +1,6 @@
 import { EventEmitter } from './core/events';
-import { MediaController, type HlsAudioTrackInfo, type HlsLevelInfo } from './core/media';
+import { MediaController } from './core/media';
+import type { AudioTrackInfo as EngineAudioTrack, LevelInfo as EngineLevel } from './core/engines/types';
 import { KeyboardController } from './core/keyboard';
 import { GestureController } from './core/gestures';
 import { isFullscreen, onFullscreenChange, toggleFullscreen } from './core/fullscreen';
@@ -67,9 +68,9 @@ export class SweetPlayer {
   private clickTimer: ReturnType<typeof setTimeout> | null = null;
   private progressTimer: ReturnType<typeof setInterval> | null = null;
   private currentRatio: AspectRatio = 'original';
-  /** 画质/音轨菜单当前是否由 hls.js 自动接管（业务 setQualities 会关闭） */
-  private hlsManagedQuality = false;
-  private hlsManagedAudio = false;
+  /** 画质/音轨菜单当前是否由当前引擎（hls.js / dash.js）自动接管；业务 setQualities 会关闭 */
+  private engineManagedQuality = false;
+  private engineManagedAudio = false;
   private disposers: Array<() => void> = [];
   private pluginCleanups: Array<() => void> = [];
   private destroyed = false;
@@ -110,11 +111,17 @@ export class SweetPlayer {
     if (options.autoplay) this.video.autoplay = true;
 
     const autoQuality = options.autoQuality !== false;
-    this.media = new MediaController(this.video, this.emitter, options.hlsConfig, {
-      onLevels: autoQuality && !options.qualities?.length ? (levels) => this.applyHlsLevels(levels) : undefined,
-      onAudioTracks:
-        autoQuality && !options.audioTracks?.length ? (tracks) => this.applyHlsAudioTracks(tracks) : undefined,
-    });
+    this.media = new MediaController(
+      this.video,
+      this.emitter,
+      options.hlsConfig,
+      {
+        onLevels: autoQuality && !options.qualities?.length ? (levels) => this.applyEngineLevels(levels) : undefined,
+        onAudioTracks:
+          autoQuality && !options.audioTracks?.length ? (tracks) => this.applyEngineAudioTracks(tracks) : undefined,
+      },
+      options.dashConfig,
+    );
 
     this.osd = createOsd();
     this.tapFlash = createTapFlash();
@@ -314,14 +321,14 @@ export class SweetPlayer {
 
   /** 运行时更新画质列表 */
   setQualities(qualities: QualityLevel[], active?: QualityLevel): void {
-    this.hlsManagedQuality = false;
+    this.engineManagedQuality = false;
     this.controls.qualityMenu.setItems(qualities.map((q) => ({ label: q.label, value: q })));
     if (active) this.controls.qualityMenu.setActive(active);
   }
 
   /** 运行时更新音轨列表 */
   setAudioTracks(tracks: AudioTrackInfo[], active?: AudioTrackInfo): void {
-    this.hlsManagedAudio = false;
+    this.engineManagedAudio = false;
     this.controls.audioMenu.setItems(tracks.map((t) => ({ label: t.label, value: t })));
     if (active) this.controls.audioMenu.setActive(active);
   }
@@ -418,26 +425,26 @@ export class SweetPlayer {
     this.container.remove();
   }
 
-  // ---------- 内部：hls 自动画质/音轨 ----------
+  // ---------- 内部：引擎（hls.js / dash.js）自动画质/音轨 ----------
 
-  private applyHlsLevels(levels: HlsLevelInfo[]): void {
+  private applyEngineLevels(levels: EngineLevel[]): void {
     const auto: QualityLevel = { label: this.i18n.t('qualityAuto'), value: -1 };
     const items: QualityLevel[] = [auto, ...levels.map((l) => ({ label: l.label, value: l.index }))];
     this.setQualities(items, auto);
-    this.hlsManagedQuality = true;
+    this.engineManagedQuality = true;
   }
 
-  private applyHlsAudioTracks(tracks: HlsAudioTrackInfo[]): void {
+  private applyEngineAudioTracks(tracks: EngineAudioTrack[]): void {
     const items: AudioTrackInfo[] = tracks.map((t) => ({ label: t.label, value: t.index }));
     this.setAudioTracks(items, items[0]);
-    this.hlsManagedAudio = true;
+    this.engineManagedAudio = true;
   }
 
   private handleQualitySelect(quality: QualityLevel): void {
     log('播放器', `切换画质: ${quality.label}`);
     this.controls.qualityMenu.setActive(quality);
-    if (this.hlsManagedQuality && typeof quality.value === 'number') {
-      // hls 自动接入的档位：直接切 level（-1 为自动）
+    if (this.engineManagedQuality && typeof quality.value === 'number') {
+      // 引擎自动接入的档位：直接切 level（-1 为自动）
       this.media.setLevel(quality.value);
     } else if (quality.src) {
       const time = this.video.currentTime;
@@ -451,7 +458,7 @@ export class SweetPlayer {
   private handleAudioTrackSelect(track: AudioTrackInfo): void {
     log('播放器', `切换音轨: ${track.label}`);
     this.controls.audioMenu.setActive(track);
-    if (this.hlsManagedAudio && typeof track.value === 'number') {
+    if (this.engineManagedAudio && typeof track.value === 'number') {
       this.media.setAudioTrack(track.value);
     }
     this.options.onAudioTrackChange?.(track);
