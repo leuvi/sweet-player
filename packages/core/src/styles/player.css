@@ -446,9 +446,10 @@
   border-bottom: 6px solid var(--sp-accent);
 }
 
+/* 时间胶囊：固定在游标卡尺上方，位置不随预览图变化 */
 .sp-progress-tooltip {
   position: absolute;
-  bottom: 28px;
+  bottom: 24px;
   transform: translateX(-50%);
   padding: 2px 6px;
   background: rgba(0, 0, 0, 0.8);
@@ -466,7 +467,8 @@
 /* ---------- 进度条缩略图预览 ---------- */
 .sp-thumb-preview {
   position: absolute;
-  bottom: 40px;
+  /* 有预览图时上移，给时间胶囊留出空间 */
+  bottom: 58px;
   display: none;
   border-radius: 4px;
   overflow: hidden;
@@ -478,22 +480,6 @@
 .sp-thumb-preview-img {
   background-repeat: no-repeat;
   display: block;
-}
-
-/* 时间胶囊：浮在预览图内部底部居中（B 站样式） */
-.sp-thumb-preview-time {
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  transform: translateX(-50%);
-  padding: 1px 8px;
-  background: rgba(0, 0, 0, 0.65);
-  border-radius: 3px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: #fff;
-  white-space: nowrap;
-  pointer-events: none;
 }
 
 /* ---------- 热度曲线（Most replayed） ---------- */

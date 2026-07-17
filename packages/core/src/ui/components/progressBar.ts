@@ -132,33 +132,36 @@ export function createProgressBar(
   /** 悬停位置指示针（游标卡尺样式），始终跟随指针，与预览图/时间提示是否开启无关 */
   const caliper = createEl('div', { className: 'sp-progress-caliper', parent: root });
 
+  // 时间提示：位置固定在游标卡尺上方（不再和预览图绑定，也在无预览图时使用）
+  const tooltip = createEl('div', { className: 'sp-progress-tooltip', text: '0:00', parent: root });
+
   // ---- 缩略图预览（可选）----
   const hasThumbnails = !!thumbnailsUrl;
   let thumbCues: ThumbnailCue[] = [];
   let thumbWrap: HTMLElement | null = null;
   let thumbImg: HTMLElement | null = null;
-  let thumbTime: HTMLElement | null = null;
   let lastThumbUrl = '';
 
-  // 未开启预览图时用悬浮时间提示；开启时时间显示在预览图内部，不再单独出现
-  const tooltip = hasThumbnails ? null : createEl('div', { className: 'sp-progress-tooltip', text: '0:00', parent: root });
-
   if (hasThumbnails) {
+    root.classList.add('sp-has-thumbnails');
     thumbWrap = createEl('div', { className: 'sp-thumb-preview', parent: root });
     thumbImg = createEl('div', { className: 'sp-thumb-preview-img', parent: thumbWrap });
-    thumbTime = createEl('div', { className: 'sp-thumb-preview-time', text: '0:00', parent: thumbWrap });
     parseThumbnailVtt(thumbnailsUrl!)
       .then((cues) => {
         thumbCues = cues;
+        // 预加载所有 sprite 图，避免 hover 时首次显示为黑块
+        const uniqueUrls = new Set(cues.map((c) => c.url));
+        uniqueUrls.forEach((url) => {
+          const img = new Image();
+          img.src = url;
+        });
       })
       .catch((err) => log('预览图', `VTT 加载失败: ${String(err)}`));
   }
 
   function updateThumbPreview(ratio: number): void {
-    if (!thumbWrap || !thumbImg || !thumbTime) return;
+    if (!thumbWrap || !thumbImg || thumbCues.length === 0) return;
     const duration = video.duration || 0;
-    thumbTime.textContent = formatTime(ratio * duration);
-    if (thumbCues.length === 0) return;
     const cue = findThumbnailCue(thumbCues, ratio * duration);
     if (!cue) {
       thumbWrap.style.display = 'none';
@@ -214,12 +217,9 @@ export function createProgressBar(
   function onPointerMove(e: PointerEvent): void {
     const ratio = ratioFromEvent(e);
     caliper.style.left = `${ratio * 100}%`;
-    if (hasThumbnails) {
-      updateThumbPreview(ratio);
-    } else if (tooltip) {
-      tooltip.style.left = `${ratio * 100}%`;
-      tooltip.textContent = formatTime(ratio * (video.duration || 0));
-    }
+    tooltip.style.left = `${ratio * 100}%`;
+    tooltip.textContent = formatTime(ratio * (video.duration || 0));
+    if (hasThumbnails) updateThumbPreview(ratio);
     if (dragging) render(ratio);
   }
 
