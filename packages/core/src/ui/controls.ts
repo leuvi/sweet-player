@@ -268,6 +268,7 @@ export function createControls(ctx: ControlsContext): Controls {
     },
     destroy() {
       settingsPanel.destroy();
+      progress.destroy();
       topEl.remove();
       bottomEl.remove();
     },

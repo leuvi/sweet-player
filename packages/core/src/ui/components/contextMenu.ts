@@ -2,6 +2,12 @@ import { createEl } from '../../utils/dom';
 
 export interface ContextMenuItem {
   label: string;
+  /**
+   * 可选：自定义 HTML 内容（例如带图标的按钮）。
+   *
+   * **安全提示**：该字段直接作为 `innerHTML` 注入，调用方必须自行保证内容受信。
+   * 严禁将用户输入拼入 `html`；如需展示不受信文本，请只使用 `label`（走 `textContent`）。
+   */
   html?: string;
   onClick(): void;
 }
@@ -61,7 +67,7 @@ export function createContextMenu(container: HTMLElement, items: ContextMenuItem
         item.onClick();
       });
       const children = menu.children;
-      if (index !== undefined && index < children.length) {
+      if (index !== undefined && index >= 0 && index < children.length) {
         menu.insertBefore(el, children[index]);
       } else {
         menu.appendChild(el);

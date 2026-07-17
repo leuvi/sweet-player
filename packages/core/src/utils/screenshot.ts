@@ -32,7 +32,8 @@ function downloadBlob(blob: Blob, filename: string): void {
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // 部分浏览器/下载器要在 10 秒内继续访问 blob url，延长到 10s 更稳
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
 /**

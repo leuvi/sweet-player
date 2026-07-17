@@ -12,6 +12,7 @@ export type {
   AudioTrackInfo,
   AspectRatio,
   ControlName,
+  HeatmapPoint,
   LongSeekOptions,
   PlayerEventMap,
   PlayerEventName,

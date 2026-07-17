@@ -31,13 +31,17 @@ class DashEngine implements MediaEngine {
       this.notifyTracks();
     });
     this.player.on(evts.ERROR, (e) => {
-      // dash.js 的错误分很多子形态；除 MediaSource/网络等致命外，其它 warning-like 事件不上抛
+      // dash.js 的错误分很多子形态；已知致命类分类上抛，其它未知致命错误兜底为 dash-fatal，
+      // 避免"播放器卡住但无 error 事件"。仅在 event.error 存在时判定为致命错误。
       const detail = e as unknown as { error?: unknown; event?: unknown };
-      const errStr = String((detail as { error?: string }).error ?? '');
+      const errRaw = (detail as { error?: unknown }).error;
+      if (errRaw == null) return; // warning-like，无 error 字段则不上抛
+      const errStr = String(errRaw);
       log('dash事件', `错误: ${errStr}`);
       if (errStr === 'download' || errStr === 'manifestError') {
         this.callbacks.onError({ type: 'dash-network', detail });
-      } else if (errStr === 'capability' || errStr === 'mediasource') {
+      } else {
+        // capability / mediasource / 其它未知致命错误统一走 dash-fatal
         this.callbacks.onError({ type: 'dash-fatal', detail });
       }
     });

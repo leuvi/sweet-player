@@ -5,6 +5,7 @@ export interface TapFlash {
   el: HTMLElement;
   /** 播放/暂停切换时中心闪现对应图标（放大渐隐，类似 YouTube） */
   flash(kind: 'play' | 'pause'): void;
+  destroy(): void;
 }
 
 export function createTapFlash(): TapFlash {
@@ -19,6 +20,9 @@ export function createTapFlash(): TapFlash {
       el.classList.remove('sp-tap-flash-run');
       void el.offsetWidth;
       el.classList.add('sp-tap-flash-run');
+    },
+    destroy() {
+      el.remove();
     },
   };
 }

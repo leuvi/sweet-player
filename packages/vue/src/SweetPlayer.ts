@@ -13,6 +13,7 @@ import {
   type AspectRatio,
   type AudioTrackInfo,
   type ControlName,
+  type HeatmapPoint,
   type LongSeekOptions,
   type QualityLevel,
   type SweetPlayerPlugin,
@@ -33,6 +34,9 @@ export const SweetPlayer = defineComponent({
     aspectRatios: Array as PropType<AspectRatio[]>,
     qualities: Array as PropType<QualityLevel[]>,
     audioTracks: Array as PropType<AudioTrackInfo[]>,
+    heatmap: Array as PropType<HeatmapPoint[]>,
+    poster: String,
+    thumbnails: String,
     autoQuality: { type: Boolean, default: true },
     persist: { type: Boolean, default: true },
     autoNext: [Boolean, Number] as PropType<boolean | number>,
@@ -41,15 +45,29 @@ export const SweetPlayer = defineComponent({
     hiddenControls: Array as PropType<ControlName[]>,
     plugins: Array as PropType<SweetPlayerPlugin[]>,
     hlsConfig: Object as PropType<Record<string, unknown>>,
+    dashConfig: Object as PropType<Record<string, unknown>>,
   },
-  emits: ['ready', 'prev', 'next', 'quality-change', 'audio-track-change'],
+  emits: [
+    'ready',
+    'prev',
+    'next',
+    'quality-change',
+    'audio-track-change',
+    'play',
+    'pause',
+    'ended',
+    'timeupdate',
+    'volumechange',
+    'ratechange',
+    'error',
+  ],
   setup(props, { emit, expose }) {
     const containerRef = ref<HTMLDivElement>();
     const player = shallowRef<CorePlayer | null>(null);
 
     onMounted(() => {
       if (!containerRef.value) return;
-      player.value = new CorePlayer({
+      const p = new CorePlayer({
         container: containerRef.value,
         src: props.src,
         title: props.title,
@@ -63,6 +81,9 @@ export const SweetPlayer = defineComponent({
         aspectRatios: props.aspectRatios,
         qualities: props.qualities,
         audioTracks: props.audioTracks,
+        heatmap: props.heatmap,
+        poster: props.poster,
+        thumbnails: props.thumbnails,
         autoQuality: props.autoQuality,
         persist: props.persist,
         autoNext: props.autoNext,
@@ -71,12 +92,22 @@ export const SweetPlayer = defineComponent({
         hiddenControls: props.hiddenControls,
         plugins: props.plugins,
         hlsConfig: props.hlsConfig,
+        dashConfig: props.dashConfig,
         onPrev: () => emit('prev'),
         onNext: () => emit('next'),
         onQualityChange: (q) => emit('quality-change', q),
         onAudioTrackChange: (t) => emit('audio-track-change', t),
       });
-      emit('ready', player.value);
+      // 桥接核心播放事件到 Vue emits
+      p.on('play', () => emit('play'));
+      p.on('pause', () => emit('pause'));
+      p.on('ended', () => emit('ended'));
+      p.on('timeupdate', (payload) => emit('timeupdate', payload));
+      p.on('volumechange', (payload) => emit('volumechange', payload));
+      p.on('ratechange', (rate) => emit('ratechange', rate));
+      p.on('error', (payload) => emit('error', payload));
+      player.value = p;
+      emit('ready', p);
     });
 
     watch(
@@ -95,6 +126,13 @@ export const SweetPlayer = defineComponent({
       () => props.qualities,
       (qualities) => {
         if (qualities) player.value?.setQualities(qualities);
+      },
+    );
+
+    watch(
+      () => props.audioTracks,
+      (tracks) => {
+        if (tracks) player.value?.setAudioTracks(tracks);
       },
     );
 

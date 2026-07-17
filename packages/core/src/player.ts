@@ -376,10 +376,18 @@ export class SweetPlayer {
     if (el) el.textContent = title;
   }
 
-  /** 安装插件；返回本次插件的卸载函数 */
+  /** 安装插件；返回本次插件的卸载函数（幂等，重复调用无副作用） */
   use(plugin: SweetPlayerPlugin): () => void {
     const cleanup = plugin.apply(this);
-    const dispose = typeof cleanup === 'function' ? cleanup : () => {};
+    const raw = typeof cleanup === 'function' ? cleanup : () => {};
+    let disposed = false;
+    const dispose = () => {
+      if (disposed) return;
+      disposed = true;
+      const idx = this.pluginCleanups.indexOf(dispose);
+      if (idx >= 0) this.pluginCleanups.splice(idx, 1);
+      raw();
+    };
     this.pluginCleanups.push(dispose);
     return dispose;
   }
@@ -416,6 +424,7 @@ export class SweetPlayer {
     this.state.destroy();
     this.contextMenu?.destroy();
     this.controls.destroy();
+    this.tapFlash.destroy();
     this.disposers.forEach((d) => d());
     if (this.hideTimer) clearTimeout(this.hideTimer);
     if (this.clickTimer) clearTimeout(this.clickTimer);
@@ -448,8 +457,22 @@ export class SweetPlayer {
       this.media.setLevel(quality.value);
     } else if (quality.src) {
       const time = this.video.currentTime;
+      const paused = this.video.paused;
       this.media.load(quality.src);
-      this.video.currentTime = time;
+      // load 是异步挂引擎的，需等 loadedmetadata 后再恢复进度。
+      // 用一次性 listener + currentSrc 校验，避免被后续 load 覆盖时误 seek。
+      const targetSrc = quality.src;
+      const restore = () => {
+        this.video.removeEventListener('loadedmetadata', restore);
+        if (this.media.currentSrc !== targetSrc) return;
+        try {
+          this.video.currentTime = time;
+        } catch {
+          /* 某些引擎在 metadata 阶段仍拒绝 seek，忽略即可 */
+        }
+        if (!paused) void this.video.play().catch(() => {});
+      };
+      this.video.addEventListener('loadedmetadata', restore);
     }
     this.options.onQualityChange?.(quality);
     this.emitter.emit('qualitychange', quality);
@@ -594,7 +617,9 @@ export class SweetPlayer {
     });
     this.disposers.push(
       this.emitter.on('error', (payload) => {
-        if (payload.type.startsWith('hls-')) this.showErrorStateUi();
+        if (payload.type.startsWith('hls-') || payload.type.startsWith('dash-')) {
+          this.showErrorStateUi();
+        }
       }),
     );
 

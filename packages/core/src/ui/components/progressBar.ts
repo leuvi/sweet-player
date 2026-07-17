@@ -142,12 +142,16 @@ export function createProgressBar(
   let thumbImg: HTMLElement | null = null;
   let lastThumbUrl = '';
 
+  let destroyed = false;
+  const abortCtrl = new AbortController();
+
   if (hasThumbnails) {
     root.classList.add('sp-has-thumbnails');
     thumbWrap = createEl('div', { className: 'sp-thumb-preview', parent: root });
     thumbImg = createEl('div', { className: 'sp-thumb-preview-img', parent: thumbWrap });
-    parseThumbnailVtt(thumbnailsUrl!)
+    parseThumbnailVtt(thumbnailsUrl!, abortCtrl.signal)
       .then((cues) => {
+        if (destroyed) return;
         thumbCues = cues;
         // 预加载所有 sprite 图，避免 hover 时首次显示为黑块
         const uniqueUrls = new Set(cues.map((c) => c.url));
@@ -156,7 +160,10 @@ export function createProgressBar(
           img.src = url;
         });
       })
-      .catch((err) => log('预览图', `VTT 加载失败: ${String(err)}`));
+      .catch((err) => {
+        if (destroyed) return;
+        log('预览图', `VTT 加载失败: ${String(err)}`);
+      });
   }
 
   function updateThumbPreview(ratio: number): void {
@@ -188,9 +195,19 @@ export function createProgressBar(
   }
 
   let dragging = false;
+  // 缓存 root 的位置/宽度，避免 pointermove 每次强制回流。
+  // 拖拽/悬停期间元素位置很少变动；pointerdown 时刷新一次即可，同时监听 resize 兜底。
+  let cachedRect: { left: number; width: number } | null = null;
+  const readRect = (): { left: number; width: number } => {
+    const r = root.getBoundingClientRect();
+    return { left: r.left, width: r.width };
+  };
+  const invalidateRect = () => {
+    cachedRect = null;
+  };
 
   function ratioFromEvent(e: PointerEvent): number {
-    const rect = root.getBoundingClientRect();
+    const rect = cachedRect ?? (cachedRect = readRect());
     return clamp((e.clientX - rect.left) / rect.width, 0, 1);
   }
 
@@ -227,6 +244,7 @@ export function createProgressBar(
     dragging = true;
     root.classList.add('sp-dragging');
     root.setPointerCapture(e.pointerId);
+    cachedRect = readRect(); // 交互开始时刷新一次
     render(ratioFromEvent(e));
   }
 
@@ -234,21 +252,31 @@ export function createProgressBar(
     if (!dragging) return;
     dragging = false;
     root.classList.remove('sp-dragging');
+    try {
+      root.releasePointerCapture(e.pointerId);
+    } catch {
+      /* 部分浏览器在指针已释放时会抛，忽略 */
+    }
     onSeek(ratioFromEvent(e) * (video.duration || 0));
   }
+
+  const onPointerCancel = () => {
+    dragging = false;
+    root.classList.remove('sp-dragging');
+  };
+  const onPointerLeave = () => {
+    if (thumbWrap) thumbWrap.style.display = 'none';
+  };
 
   root.addEventListener('pointermove', onPointerMove);
   root.addEventListener('pointerdown', onPointerDown);
   root.addEventListener('pointerup', onPointerUp);
-  root.addEventListener('pointercancel', () => {
-    dragging = false;
-    root.classList.remove('sp-dragging');
-  });
+  root.addEventListener('pointercancel', onPointerCancel);
   if (hasThumbnails) {
-    root.addEventListener('pointerleave', () => {
-      if (thumbWrap) thumbWrap.style.display = 'none';
-    });
+    root.addEventListener('pointerleave', onPointerLeave);
   }
+  window.addEventListener('resize', invalidateRect);
+  window.addEventListener('scroll', invalidateRect, true);
 
   return {
     el: root,
@@ -259,6 +287,15 @@ export function createProgressBar(
       if (heatmapEl) heatmapEl.classList.toggle('sp-heatmap-hidden', !visible);
     },
     destroy() {
+      destroyed = true;
+      abortCtrl.abort();
+      root.removeEventListener('pointermove', onPointerMove);
+      root.removeEventListener('pointerdown', onPointerDown);
+      root.removeEventListener('pointerup', onPointerUp);
+      root.removeEventListener('pointercancel', onPointerCancel);
+      if (hasThumbnails) root.removeEventListener('pointerleave', onPointerLeave);
+      window.removeEventListener('resize', invalidateRect);
+      window.removeEventListener('scroll', invalidateRect, true);
       root.remove();
     },
   };

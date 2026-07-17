@@ -13,9 +13,16 @@ export interface AudioTrackInfo {
   label: string;
 }
 
+export type EngineErrorType =
+  | 'hls-network'
+  | 'hls-fatal'
+  | 'hls-unsupported'
+  | 'dash-network'
+  | 'dash-fatal'
+  | 'dash-unsupported';
+
 export interface EngineErrorPayload {
-  /** 例如 'hls-network' / 'hls-fatal' / 'hls-unsupported' / 'dash-network' / 'dash-fatal' / 'dash-unsupported' */
-  type: string;
+  type: EngineErrorType;
   detail?: unknown;
 }
 

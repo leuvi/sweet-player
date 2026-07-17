@@ -26,6 +26,8 @@ export class MediaController {
   private engine: MediaEngine | null = null;
   /** 每次 load 递增，避免异步 import 竞态：后来的 load 应该覆盖先来的 */
   private loadSeq = 0;
+  /** 首次 hls.js 探测发现只能走原生 HLS 后缓存，避免 reload 每次重新 import hls.js */
+  private nativeHlsOnly = false;
   currentSrc = '';
 
   constructor(
@@ -64,6 +66,11 @@ export class MediaController {
     }
 
     if (isHlsSource(src)) {
+      // 已探测过：Safari 原生 HLS 分支，直接赋 src，跳过 hls.js 动态 import
+      if (this.nativeHlsOnly) {
+        this.video.src = src;
+        return;
+      }
       void (async () => {
         try {
           const [{ createHlsEngine }, { default: Hls }] = await Promise.all([
@@ -76,6 +83,7 @@ export class MediaController {
             return;
           }
           if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
+            this.nativeHlsOnly = true;
             this.video.src = src;
             return;
           }
