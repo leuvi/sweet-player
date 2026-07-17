@@ -256,9 +256,51 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 
 ## Instance API
 
-`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio(r)` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`
+### Methods
 
-Events: `ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
+| Method | Description |
+|---|---|
+| `play()` | Start playback. Returns a `Promise`. |
+| `pause()` | Pause playback. |
+| `toggle()` | Toggle play / pause. |
+| `seek(time)` | Jump to an absolute time in seconds. |
+| `seekBy(delta)` | Seek by a relative offset in seconds (positive or negative). |
+| `setRate(rate)` | Set playback rate, e.g. `1.5`. |
+| `setVolume(volume)` | Set volume in the `0–100` range. |
+| `setMuted(muted)` | Mute or unmute. |
+| `setAspectRatio(ratio)` | `'original' \| '21:9' \| '16:9' \| '4:3'`. |
+| `setQualities(list, active?)` | Replace the quality list; optionally set active. |
+| `setAudioTracks(list, active?)` | Replace the audio-track list; optionally set active. |
+| `toggleFullscreen()` | Enter / exit fullscreen. |
+| `togglePip()` | Enter / exit Picture-in-Picture. |
+| `screenshot()` | Copy the current frame to the clipboard, or download it. |
+| `load(src)` | Load a new source without recreating the player. |
+| `setTitle(title)` | Update the top-left title text. |
+| `use(plugin)` | Install a plugin at runtime; returns an uninstall function. |
+| `addSettingsRow(section)` | Register a settings-panel row; returns a remove function. |
+| `addContextMenuItem(item, index?)` | Register a right-click menu item; returns a remove function. |
+| `on(event, fn)` | Subscribe to an event; returns an unsubscribe function. |
+| `off(event, fn)` | Remove an event listener. |
+| `destroy()` | Tear down the player and release all resources. |
+
+### Events
+
+| Event | Payload | Fires when |
+|---|---|---|
+| `ready` | — | Metadata is loaded and the player is ready to play. |
+| `play` | — | Playback starts or resumes. |
+| `pause` | — | Playback pauses. |
+| `ended` | — | Playback reaches the end of the video. |
+| `timeupdate` | `{ currentTime, duration }` | The current playback position changes. |
+| `ratechange` | `number` (new rate) | The playback rate changes. |
+| `volumechange` | `{ volume, muted }` | Volume or mute state changes. |
+| `fullscreenchange` | `boolean` (is fullscreen) | Fullscreen state changes. |
+| `pipchange` | `boolean` (is in PiP) | Picture-in-Picture state changes. |
+| `aspectratiochange` | `AspectRatio` | The forced aspect ratio changes. |
+| `qualitychange` | `QualityLevel` | Quality is switched. |
+| `audiotrackchange` | `AudioTrackInfo` | Audio track is switched. |
+| `error` | `{ type, detail? }` | Playback or network error occurs. |
+| `destroy` | — | `destroy()` is called. |
 
 ## License
 

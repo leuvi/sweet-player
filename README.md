@@ -102,11 +102,49 @@ const player = new SweetPlayer({
 
 ### Methods
 
-`play()` `pause()` `toggle()` `seek(t)` `seekBy(±s)` `setRate(r)` `setVolume(0-100)` `setMuted(b)` `setAspectRatio('original'|'21:9'|'16:9'|'4:3')` `setQualities(list)` `setAudioTracks(list)` `toggleFullscreen()` `togglePip()` `screenshot()` `load(src)` `setTitle(s)` `use(plugin)` `addSettingsRow(section)` `addContextMenuItem(item, index?)` `on/off(event, fn)` `destroy()`
+| Method | Description |
+|---|---|
+| `play()` | Start playback. Returns a `Promise`. |
+| `pause()` | Pause playback. |
+| `toggle()` | Toggle play / pause. |
+| `seek(time)` | Jump to an absolute time in seconds. |
+| `seekBy(delta)` | Seek by a relative offset in seconds (positive or negative). |
+| `setRate(rate)` | Set playback rate, e.g. `1.5`. |
+| `setVolume(volume)` | Set volume in the `0–100` range. |
+| `setMuted(muted)` | Mute or unmute. |
+| `setAspectRatio(ratio)` | `'original' \| '21:9' \| '16:9' \| '4:3'`. |
+| `setQualities(list, active?)` | Replace the quality list; optionally set active. |
+| `setAudioTracks(list, active?)` | Replace the audio-track list; optionally set active. |
+| `toggleFullscreen()` | Enter / exit fullscreen. |
+| `togglePip()` | Enter / exit Picture-in-Picture. |
+| `screenshot()` | Copy the current frame to the clipboard, or download it. |
+| `load(src)` | Load a new source without recreating the player. |
+| `setTitle(title)` | Update the top-left title text. |
+| `use(plugin)` | Install a plugin at runtime; returns an uninstall function. |
+| `addSettingsRow(section)` | Register a settings-panel row; returns a remove function. |
+| `addContextMenuItem(item, index?)` | Register a right-click menu item; returns a remove function. |
+| `on(event, fn)` | Subscribe to an event; returns an unsubscribe function. |
+| `off(event, fn)` | Remove an event listener. |
+| `destroy()` | Tear down the player and release all resources. |
 
 ### Events
 
-`ready` `play` `pause` `ended` `timeupdate` `ratechange` `volumechange` `fullscreenchange` `pipchange` `aspectratiochange` `qualitychange` `audiotrackchange` `error` `destroy`
+| Event | Payload | Fires when |
+|---|---|---|
+| `ready` | — | Metadata is loaded and the player is ready to play. |
+| `play` | — | Playback starts or resumes. |
+| `pause` | — | Playback pauses. |
+| `ended` | — | Playback reaches the end of the video. |
+| `timeupdate` | `{ currentTime, duration }` | The current playback position changes. |
+| `ratechange` | `number` (new rate) | The playback rate changes. |
+| `volumechange` | `{ volume, muted }` | Volume or mute state changes. |
+| `fullscreenchange` | `boolean` (is fullscreen) | Fullscreen state changes. |
+| `pipchange` | `boolean` (is in PiP) | Picture-in-Picture state changes. |
+| `aspectratiochange` | `AspectRatio` | The forced aspect ratio changes. |
+| `qualitychange` | `QualityLevel` | Quality is switched. |
+| `audiotrackchange` | `AudioTrackInfo` | Audio track is switched. |
+| `error` | `{ type, detail? }` | Playback or network error occurs. |
+| `destroy` | — | `destroy()` is called. |
 
 ```ts
 player.on('timeupdate', ({ currentTime, duration }) => {});
@@ -374,7 +412,30 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 ```
 
-Available values: `prev` `seekBack` `play` `seekForward` `next` `time` `rate` `quality` `ratio` `audioTrack` `volume` `pip` `heatmap` `thumbnails` `settings` `fullscreen` `title` `progress` `contextMenu`
+Available values:
+
+| Value | Hides |
+|---|---|
+| `prev` | Previous button |
+| `seekBack` | Rewind button |
+| `play` | Play / pause button |
+| `seekForward` | Forward button |
+| `next` | Next button |
+| `time` | Current-time / duration label |
+| `rate` | Playback-speed row in the settings panel |
+| `quality` | Quality row in the settings panel |
+| `ratio` | Aspect-ratio row in the settings panel |
+| `audioTrack` | Audio-track row in the settings panel |
+| `volume` | Volume control |
+| `pip` | Picture-in-Picture toggle in the settings panel |
+| `heatmap` | Most-replayed curve above the progress bar |
+| `thumbnails` | Progress-bar hover preview thumbnails |
+| `poster` | Cover image before playback starts |
+| `settings` | Entire settings-panel button |
+| `fullscreen` | Fullscreen button |
+| `title` | Top-left title |
+| `progress` | Whole progress bar (also disables heatmap & thumbnails) |
+| `contextMenu` | Custom right-click menu |
 
 ## Customization
 
