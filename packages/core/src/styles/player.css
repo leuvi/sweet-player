@@ -480,16 +480,17 @@
   display: block;
 }
 
-/* 时间气泡：紧贴预览图下方居中，气泡形态而非通栏色带 */
+/* 时间胶囊：浮在预览图内部底部居中（B 站样式） */
 .sp-thumb-preview-time {
   position: absolute;
   left: 50%;
-  top: calc(100% + 6px);
+  bottom: 6px;
   transform: translateX(-50%);
-  padding: 2px 6px;
-  background: rgba(0, 0, 0, 0.8);
+  padding: 1px 8px;
+  background: rgba(0, 0, 0, 0.65);
   border-radius: 3px;
   font-size: 12px;
+  line-height: 1.4;
   color: #fff;
   white-space: nowrap;
   pointer-events: none;
