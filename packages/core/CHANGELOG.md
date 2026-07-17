@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 0.10.3
+
+### Patch Changes
+
+- 08070a7: Fix the thumbnail preview's time label: restore the original pill-shaped bubble style (was accidentally rendered as a full-width bar) and attach it just below the preview box.
+
 ## 0.10.2
 
 ### Patch Changes
