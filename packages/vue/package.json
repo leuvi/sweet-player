@@ -1,6 +1,6 @@
 {
   "name": "@sweet-player/vue",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Vue component for sweet-player",
   "type": "module",
   "main": "./dist/index.cjs",
