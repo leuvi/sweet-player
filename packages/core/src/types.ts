@@ -50,6 +50,7 @@ export type ControlName =
   | 'thumbnails'
   | 'poster'
   | 'fullscreen'
+  | 'webFullscreen'
   | 'settings'
   | 'title'
   | 'progress'
@@ -143,6 +144,8 @@ export interface PlayerEventMap {
   ratechange: number;
   volumechange: { volume: number; muted: boolean };
   fullscreenchange: boolean;
+  /** 网页全屏（CSS 撑满视口，非浏览器 Fullscreen API）状态变化 */
+  webfullscreenchange: boolean;
   pipchange: boolean;
   aspectratiochange: AspectRatio;
   qualitychange: QualityLevel;

@@ -29,6 +29,7 @@ export interface ControlsContext {
     toggleMute(): void;
     setAspectRatio(ratio: AspectRatio): void;
     toggleFullscreen(): void;
+    toggleWebFullscreen(): void;
     togglePip(): void;
     selectQuality(q: QualityLevel): void;
     selectAudioTrack(t: AudioTrackInfo): void;
@@ -49,6 +50,7 @@ export interface Controls {
   updateTime(): void;
   updateRate(rate: number): void;
   updateFullscreen(fs: boolean): void;
+  updateWebFullscreen(wfs: boolean): void;
   updatePip(pip: boolean): void;
   updateRatio(ratio: AspectRatio): void;
   destroy(): void;
@@ -202,6 +204,8 @@ export function createControls(ctx: ControlsContext): Controls {
   });
   if (show('settings')) row.appendChild(settingsPanel.el);
 
+  // 网页全屏放在浏览器全屏左边（更常用的靠右），移动端一般用不上但不隐藏——业务可通过 hiddenControls 关掉
+  const wfsBtn = button(icons.webFullscreen, i18n.t('webFullscreen'), actions.toggleWebFullscreen, false, show('webFullscreen'));
   const fsBtn = button(icons.fullscreen, i18n.t('fullscreen'), actions.toggleFullscreen, false, show('fullscreen'));
 
   // ---- 兼容 qualityMenu / audioMenu 接口（player.ts 通过它们更新列表） ----
@@ -258,6 +262,9 @@ export function createControls(ctx: ControlsContext): Controls {
     },
     updateFullscreen(fs) {
       fsBtn.innerHTML = fs ? icons.fullscreenExit : icons.fullscreen;
+    },
+    updateWebFullscreen(wfs) {
+      wfsBtn.innerHTML = wfs ? icons.webFullscreenExit : icons.webFullscreen;
     },
     updatePip(pip) {
       settingsPanel.updateSection('pip', { toggle: { checked: pip } });

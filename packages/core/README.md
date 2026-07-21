@@ -55,8 +55,8 @@ player.destroy();
 
 ## Features
 
-- **Full UI controls**: Play/pause, seek, progress bar (drag + buffer), playback rate, quality, aspect ratio, audio track, volume, fullscreen, PiP
-- **Keyboard shortcuts**: Space for play/pause, arrow keys for seeking (hold for accelerating seek 10→30→60 s/s), ↑↓ for volume, F for fullscreen, M for mute
+- **Full UI controls**: Play/pause, seek, progress bar (drag + buffer), playback rate, quality, aspect ratio, audio track, volume, browser & web fullscreen, PiP
+- **Keyboard shortcuts**: Space for play/pause, arrow keys for seeking (hold for accelerating seek 10→30→60 s/s), ↑↓ for volume, F for browser fullscreen, W for web fullscreen (works inside iframes without `allow="fullscreen"`), M for mute
 - **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
 - **Auto quality**: HLS / DASH multi-level quality/audio tracks auto-populate menus; also supports custom lists
 - **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
@@ -275,7 +275,8 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 | `setAspectRatio(ratio)` | `'original' \| '21:9' \| '16:9' \| '4:3'`. |
 | `setQualities(list, active?)` | Replace the quality list; optionally set active. |
 | `setAudioTracks(list, active?)` | Replace the audio-track list; optionally set active. |
-| `toggleFullscreen()` | Enter / exit fullscreen. |
+| `toggleFullscreen()` | Enter / exit browser fullscreen (Fullscreen API). |
+| `toggleWebFullscreen()` | Enter / exit **web fullscreen** — CSS-only, fills the browser viewport. Works inside iframes without `allow="fullscreen"`. |
 | `togglePip()` | Enter / exit Picture-in-Picture. |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `load(src)` | Load a new source without recreating the player. |
@@ -298,7 +299,8 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 | `timeupdate` | `{ currentTime, duration }` | The current playback position changes. |
 | `ratechange` | `number` (new rate) | The playback rate changes. |
 | `volumechange` | `{ volume, muted }` | Volume or mute state changes. |
-| `fullscreenchange` | `boolean` (is fullscreen) | Fullscreen state changes. |
+| `fullscreenchange` | `boolean` (is fullscreen) | Browser fullscreen state changes. |
+| `webfullscreenchange` | `boolean` (is web fullscreen) | Web fullscreen state changes. |
 | `pipchange` | `boolean` (is in PiP) | Picture-in-Picture state changes. |
 | `aspectratiochange` | `AspectRatio` | The forced aspect ratio changes. |
 | `qualitychange` | `QualityLevel` | Quality is switched. |

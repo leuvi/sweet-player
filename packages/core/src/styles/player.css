@@ -23,6 +23,21 @@
   justify-content: center;
 }
 
+/* 网页全屏：撑满浏览器视口，不依赖 Fullscreen API，iframe 嵌入无权限也能用 */
+.sweet-player.sp-web-fullscreen {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  /* 尽量高但留出编辑器覆盖层空间；MAX_SAFE (2147483647) 会阻挡浏览器插件层 */
+  z-index: 2147483000 !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+}
+body.sp-web-fullscreen-lock {
+  overflow: hidden !important;
+}
+
 .sweet-player *,
 .sweet-player *::before,
 .sweet-player *::after {

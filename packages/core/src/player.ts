@@ -71,6 +71,8 @@ export class SweetPlayer {
   /** 画质/音轨菜单当前是否由当前引擎（hls.js / dash.js）自动接管；业务 setQualities 会关闭 */
   private engineManagedQuality = false;
   private engineManagedAudio = false;
+  private webFullscreen = false;
+  private onEscapeKey: ((e: KeyboardEvent) => void) | null = null;
   private disposers: Array<() => void> = [];
   private pluginCleanups: Array<() => void> = [];
   private destroyed = false;
@@ -168,6 +170,7 @@ export class SweetPlayer {
         toggleMute: () => this.setMuted(!this.video.muted),
         setAspectRatio: (r) => this.setAspectRatio(r),
         toggleFullscreen: () => this.toggleFullscreen(),
+        toggleWebFullscreen: () => this.toggleWebFullscreen(),
         togglePip: () => this.togglePip(),
         selectQuality: (q) => this.handleQualitySelect(q),
         selectAudioTrack: (t) => this.handleAudioTrackSelect(t),
@@ -197,6 +200,7 @@ export class SweetPlayer {
         },
         adjustVolume: (d) => this.setVolume(Math.round(this.video.volume * 100) + d),
         toggleFullscreen: () => this.toggleFullscreen(),
+        toggleWebFullscreen: () => this.toggleWebFullscreen(),
         toggleMute: () => this.setMuted(!this.video.muted),
       },
       {
@@ -334,11 +338,59 @@ export class SweetPlayer {
   }
 
   async toggleFullscreen(): Promise<void> {
+    // 进入浏览器全屏前先退出网页全屏，避免 fixed 定位与 :fullscreen 叠加导致的样式冲突
+    if (this.webFullscreen) this.exitWebFullscreen();
     await toggleFullscreen(this.container).catch(() => {});
   }
 
   get fullscreen(): boolean {
     return isFullscreen(this.container);
+  }
+
+  /**
+   * 网页全屏：纯 CSS 撑满浏览器视口，不依赖 Fullscreen API。
+   * 适合被 iframe 嵌入且父页未声明 `allow="fullscreen"` 的场景。
+   */
+  enterWebFullscreen(): void {
+    if (this.webFullscreen) return;
+    // 与浏览器全屏互斥：已在浏览器全屏则先退出
+    if (this.fullscreen) {
+      void toggleFullscreen(this.container).catch(() => {});
+    }
+    this.webFullscreen = true;
+    this.container.classList.add('sp-web-fullscreen');
+    document.body.classList.add('sp-web-fullscreen-lock');
+    // Escape 退出（浏览器全屏的 Escape 由浏览器兜底，这里只处理网页全屏）
+    this.onEscapeKey = (e) => {
+      if (e.key === 'Escape' && this.webFullscreen) this.exitWebFullscreen();
+    };
+    document.addEventListener('keydown', this.onEscapeKey);
+    this.controls.updateWebFullscreen(true);
+    this.emitter.emit('webfullscreenchange', true);
+    log('播放器', '进入网页全屏');
+  }
+
+  exitWebFullscreen(): void {
+    if (!this.webFullscreen) return;
+    this.webFullscreen = false;
+    this.container.classList.remove('sp-web-fullscreen');
+    document.body.classList.remove('sp-web-fullscreen-lock');
+    if (this.onEscapeKey) {
+      document.removeEventListener('keydown', this.onEscapeKey);
+      this.onEscapeKey = null;
+    }
+    this.controls.updateWebFullscreen(false);
+    this.emitter.emit('webfullscreenchange', false);
+    log('播放器', '退出网页全屏');
+  }
+
+  toggleWebFullscreen(): void {
+    if (this.webFullscreen) this.exitWebFullscreen();
+    else this.enterWebFullscreen();
+  }
+
+  get isWebFullscreen(): boolean {
+    return this.webFullscreen;
   }
 
   async togglePip(): Promise<void> {
@@ -417,6 +469,8 @@ export class SweetPlayer {
     this.saveProgressNow();
     this.emitter.emit('destroy', undefined);
     this.pluginCleanups.forEach((d) => d());
+    // 销毁前保证网页全屏被解除，避免残留 body class 与 escape listener
+    if (this.webFullscreen) this.exitWebFullscreen();
     this.keyboard.destroy();
     this.gestures.destroy();
     this.stats.destroy();

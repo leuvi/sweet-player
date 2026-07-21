@@ -30,6 +30,7 @@ export function createShortcutsOverlay(container: HTMLElement, i18n: I18n, seekS
       [i18n.t('scKeyHold'), i18n.t('scLongSeek')],
       ['↑ / ↓', i18n.t('scVolume')],
       ['F', i18n.t('scFullscreen')],
+      ['W', i18n.t('scWebFullscreen')],
       ['M', i18n.t('scMute')],
     ];
     for (const [key, action] of rows) {

@@ -119,7 +119,8 @@ const player = new SweetPlayer({
 | `setAspectRatio(ratio)` | `'original' \| '21:9' \| '16:9' \| '4:3'`. |
 | `setQualities(list, active?)` | Replace the quality list; optionally set active. |
 | `setAudioTracks(list, active?)` | Replace the audio-track list; optionally set active. |
-| `toggleFullscreen()` | Enter / exit fullscreen. |
+| `toggleFullscreen()` | Enter / exit browser fullscreen (Fullscreen API). |
+| `toggleWebFullscreen()` | Enter / exit **web fullscreen** — CSS-only, fills the browser viewport. Works inside iframes without `allow="fullscreen"`. |
 | `togglePip()` | Enter / exit Picture-in-Picture. |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `load(src)` | Load a new source without recreating the player. |
@@ -142,7 +143,8 @@ const player = new SweetPlayer({
 | `timeupdate` | `{ currentTime, duration }` | The current playback position changes. |
 | `ratechange` | `number` (new rate) | The playback rate changes. |
 | `volumechange` | `{ volume, muted }` | Volume or mute state changes. |
-| `fullscreenchange` | `boolean` (is fullscreen) | Fullscreen state changes. |
+| `fullscreenchange` | `boolean` (is fullscreen) | Browser fullscreen state changes. |
+| `webfullscreenchange` | `boolean` (is web fullscreen) | Web fullscreen state changes. |
 | `pipchange` | `boolean` (is in PiP) | Picture-in-Picture state changes. |
 | `aspectratiochange` | `AspectRatio` | The forced aspect ratio changes. |
 | `qualitychange` | `QualityLevel` | Quality is switched. |
@@ -170,8 +172,10 @@ player.on('error', ({ type, detail }) => {});
 | ← / → | Seek backward / forward by `seekStep` seconds |
 | Hold ← / → | Accelerating seek (10→30→60 s/s, steps up every 2s, executes on release) |
 | ↑ / ↓ | Volume ±5 |
-| F | Toggle fullscreen |
+| F | Toggle browser fullscreen |
+| W | Toggle web fullscreen (fills the viewport via CSS, works in iframes without `allow="fullscreen"`) |
 | M | Toggle mute |
+| Esc | Exit web fullscreen |
 
 ### Mouse
 
@@ -436,10 +440,38 @@ Available values:
 | `thumbnails` | Progress-bar hover preview thumbnails |
 | `poster` | Cover image before playback starts |
 | `settings` | Entire settings-panel button |
-| `fullscreen` | Fullscreen button |
+| `fullscreen` | Browser fullscreen button |
+| `webFullscreen` | Web fullscreen button |
 | `title` | Top-left title |
 | `progress` | Whole progress bar (also disables heatmap & thumbnails) |
 | `contextMenu` | Custom right-click menu |
+
+## Fullscreen — browser vs. web
+
+Two independent modes, both toggled from the control bar:
+
+| | Browser fullscreen | Web fullscreen |
+|---|---|---|
+| Underlying API | `Element.requestFullscreen()` | CSS only (`position: fixed; inset: 0`) |
+| Fills | The whole screen | The browser viewport (URL bar / tabs stay visible) |
+| Shortcut | `F` | `W` (Esc to exit) |
+| Works inside iframes | Requires the parent page to set `allow="fullscreen"` | **Always works** — no permission needed |
+
+If you build a video product that other people embed, prefer web fullscreen: many rich-text editors (WeChat MP, Notion, Yuque, …) strip iframe attributes, breaking the Fullscreen API but never web fullscreen.
+
+## Embed page
+
+`https://player.sweetui.com/embed.html` is a minimal page that turns URL query parameters into a `SweetPlayer` instance — drop it into any iframe:
+
+```html
+<iframe
+  src="https://player.sweetui.com/embed.html?src=https://your.host/video.m3u8&autoplay=1"
+  width="800" height="450" frameborder="0"
+  allow="autoplay; picture-in-picture"></iframe>
+```
+
+Query parameters: `src` (required), `title`, `poster`, `thumbnails`, `autoplay=1`, `muted=1`, `locale=zh-CN|en`.
+The embed page relays `play` / `pause` / `ended` / `error` back to the host via `postMessage({ source: 'sweet-player', type, payload })` — listen with `window.addEventListener('message', ...)`.
 
 ## Customization
 

@@ -119,7 +119,8 @@ const player = new SweetPlayer({
 | `setAspectRatio(ratio)` | `'original' \| '21:9' \| '16:9' \| '4:3'` |
 | `setQualities(list, active?)` | 替换画质列表，可指定当前档 |
 | `setAudioTracks(list, active?)` | 替换音轨列表，可指定当前音轨 |
-| `toggleFullscreen()` | 进入 / 退出全屏 |
+| `toggleFullscreen()` | 进入 / 退出浏览器全屏（Fullscreen API） |
+| `toggleWebFullscreen()` | 进入 / 退出**网页全屏**——纯 CSS 撑满视口，iframe 嵌入不需 `allow="fullscreen"` |
 | `togglePip()` | 进入 / 退出画中画 |
 | `screenshot()` | 截取当前画面，优先复制剪贴板，否则下载 |
 | `load(src)` | 加载新的播放源，无需重建播放器 |
@@ -142,7 +143,8 @@ const player = new SweetPlayer({
 | `timeupdate` | `{ currentTime, duration }` | 播放位置变化 |
 | `ratechange` | `number`（新倍速） | 倍速切换 |
 | `volumechange` | `{ volume, muted }` | 音量 / 静音状态变化 |
-| `fullscreenchange` | `boolean`（是否全屏） | 全屏状态变化 |
+| `fullscreenchange` | `boolean`（是否浏览器全屏） | 浏览器全屏状态变化 |
+| `webfullscreenchange` | `boolean`（是否网页全屏） | 网页全屏状态变化 |
 | `pipchange` | `boolean`（是否画中画） | 画中画状态变化 |
 | `aspectratiochange` | `AspectRatio` | 强制画面比例切换 |
 | `qualitychange` | `QualityLevel` | 画质切换 |
@@ -170,8 +172,10 @@ player.on('error', ({ type, detail }) => {});
 | ← / → | 快退 / 快进 `seekStep` 秒 |
 | ← / → 长按 | 阶梯式累计快进快退（10→30→60 秒/秒，每 2 秒升档，松开执行） |
 | ↑ / ↓ | 音量 ±5 |
-| F | 全屏切换 |
+| F | 浏览器全屏切换 |
+| W | 网页全屏切换（纯 CSS 撑满视口，iframe 嵌入无需 `allow="fullscreen"`） |
 | M | 静音切换 |
+| Esc | 退出网页全屏 |
 
 ### 鼠标
 
@@ -436,10 +440,38 @@ new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 | `thumbnails` | 进度条悬停的预览缩略图 |
 | `poster` | 播放前的封面图 |
 | `settings` | 整个设置面板按钮 |
-| `fullscreen` | 全屏按钮 |
+| `fullscreen` | 浏览器全屏按钮 |
+| `webFullscreen` | 网页全屏按钮 |
 | `title` | 左上角标题 |
 | `progress` | 整条进度条（同时禁用热度曲线与预览图） |
 | `contextMenu` | 自定义右键菜单 |
+
+## 全屏——浏览器全屏 vs 网页全屏
+
+两种独立模式，控制栏都有按钮：
+
+| | 浏览器全屏 | 网页全屏 |
+|---|---|---|
+| 底层 | `Element.requestFullscreen()` | 纯 CSS（`position: fixed; inset: 0`） |
+| 覆盖范围 | 整个屏幕（浏览器 UI 隐藏） | 浏览器视口（地址栏 / 标签保留） |
+| 快捷键 | `F` | `W`（`Esc` 退出） |
+| iframe 内是否可用 | 需要父页显式声明 `allow="fullscreen"` | **始终可用**——不需要任何权限 |
+
+如果你做一款视频产品要被别人嵌入使用，优先做好网页全屏：很多富文本编辑器（微信公众号、Notion、语雀等）会剥离 iframe 属性，浏览器全屏直接失效，网页全屏则一律可用。
+
+## Embed 嵌入页
+
+`https://player.sweetui.com/embed.html` 是一个极简播放页，把 URL 查询参数转成一个 `SweetPlayer` 实例，可直接放到任意 iframe 里：
+
+```html
+<iframe
+  src="https://player.sweetui.com/embed.html?src=https://your.host/video.m3u8&autoplay=1"
+  width="800" height="450" frameborder="0"
+  allow="autoplay; picture-in-picture"></iframe>
+```
+
+支持的查询参数：`src`（必填）、`title`、`poster`、`thumbnails`、`autoplay=1`、`muted=1`、`locale=zh-CN|en`。
+嵌入页会通过 `postMessage({ source: 'sweet-player', type, payload })` 把 `play` / `pause` / `ended` / `error` 事件转发给宿主页，宿主用 `window.addEventListener('message', ...)` 监听。
 
 ## 定制
 

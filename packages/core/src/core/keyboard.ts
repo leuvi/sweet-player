@@ -8,6 +8,7 @@ export interface KeyboardActions {
   onLongSeekCommit(accumulated: number): void;
   adjustVolume(delta: number): void;
   toggleFullscreen(): void;
+  toggleWebFullscreen(): void;
   toggleMute(): void;
 }
 
@@ -90,6 +91,10 @@ export class KeyboardController {
       case 'f':
       case 'F':
         if (!e.repeat) this.actions.toggleFullscreen();
+        break;
+      case 'w':
+      case 'W':
+        if (!e.repeat) this.actions.toggleWebFullscreen();
         break;
       case 'm':
       case 'M':

@@ -14,6 +14,7 @@ export interface LocaleStrings {
   audioTrack: string;
   mute: string;
   fullscreen: string;
+  webFullscreen: string;
   pip: string;
   heatmap: string;
   empty: string;
@@ -38,6 +39,7 @@ export interface LocaleStrings {
   scLongSeek: string;
   scVolume: string;
   scFullscreen: string;
+  scWebFullscreen: string;
   scMute: string;
   settings: string;
   screenshot: string;
@@ -64,6 +66,7 @@ const zhCN: LocaleStrings = {
   audioTrack: '音轨',
   mute: '静音 (M)',
   fullscreen: '全屏 (F)',
+  webFullscreen: '网页全屏 (W)',
   pip: '画中画 (P)',
   heatmap: '热度曲线',
   empty: '暂无可选项',
@@ -88,6 +91,7 @@ const zhCN: LocaleStrings = {
   scLongSeek: '阶梯累计快进快退，松开执行',
   scVolume: '音量 ±5',
   scFullscreen: '全屏切换',
+  scWebFullscreen: '网页全屏切换',
   scMute: '静音切换',
   settings: '设置',
   screenshot: '截图当前画面',
@@ -114,6 +118,7 @@ const en: LocaleStrings = {
   audioTrack: 'Audio track',
   mute: 'Mute (M)',
   fullscreen: 'Fullscreen (F)',
+  webFullscreen: 'Web fullscreen (W)',
   pip: 'Picture-in-Picture (P)',
   heatmap: 'Most replayed',
   empty: 'Nothing available',
@@ -138,6 +143,7 @@ const en: LocaleStrings = {
   scLongSeek: 'Accelerating seek, release to apply',
   scVolume: 'Volume ±5',
   scFullscreen: 'Toggle fullscreen',
+  scWebFullscreen: 'Toggle web fullscreen',
   scMute: 'Toggle mute',
   settings: 'Settings',
   screenshot: 'Capture frame',
