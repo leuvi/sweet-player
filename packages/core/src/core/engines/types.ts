@@ -15,6 +15,7 @@ export interface AudioTrackInfo {
 
 export type EngineErrorType =
   | 'hls-network'
+  | 'hls-media'
   | 'hls-fatal'
   | 'hls-unsupported'
   | 'dash-network'
