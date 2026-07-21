@@ -73,6 +73,8 @@ export class SweetPlayer {
   private engineManagedAudio = false;
   private webFullscreen = false;
   private onEscapeKey: ((e: KeyboardEvent) => void) | null = null;
+  /** reload/load 后等待 loadedmetadata 恢复进度的 AbortController，连点切换或 destroy 时 abort */
+  private restoreAbort: AbortController | null = null;
   private disposers: Array<() => void> = [];
   private pluginCleanups: Array<() => void> = [];
   private destroyed = false;
@@ -171,7 +173,7 @@ export class SweetPlayer {
         toggleMute: () => this.setMuted(!this.video.muted),
         setAspectRatio: (r) => this.setAspectRatio(r),
         toggleFullscreen: () => this.toggleFullscreen(),
-        toggleWebFullscreen: () => this.toggleWebFullscreen(),
+        toggleWebFullscreen: () => void this.toggleWebFullscreen(),
         togglePip: () => this.togglePip(),
         toggleLoop: () => this.setLoop(!this.video.loop),
         selectQuality: (q) => this.handleQualitySelect(q),
@@ -202,7 +204,7 @@ export class SweetPlayer {
         },
         adjustVolume: (d) => this.setVolume(Math.round(this.video.volume * 100) + d),
         toggleFullscreen: () => this.toggleFullscreen(),
-        toggleWebFullscreen: () => this.toggleWebFullscreen(),
+        toggleWebFullscreen: () => void this.toggleWebFullscreen(),
         toggleMute: () => this.setMuted(!this.video.muted),
       },
       {
@@ -353,11 +355,11 @@ export class SweetPlayer {
    * 网页全屏：纯 CSS 撑满浏览器视口，不依赖 Fullscreen API。
    * 适合被 iframe 嵌入且父页未声明 `allow="fullscreen"` 的场景。
    */
-  enterWebFullscreen(): void {
+  async enterWebFullscreen(): Promise<void> {
     if (this.webFullscreen) return;
-    // 与浏览器全屏互斥：已在浏览器全屏则先退出
+    // 与浏览器全屏互斥：已在浏览器全屏则先退出，等退出完成再进入网页全屏，避免 CSS 竞态
     if (this.fullscreen) {
-      void toggleFullscreen(this.container).catch(() => {});
+      await toggleFullscreen(this.container).catch(() => {});
     }
     this.webFullscreen = true;
     this.container.classList.add('sp-web-fullscreen');
@@ -386,9 +388,9 @@ export class SweetPlayer {
     log('播放器', '退出网页全屏');
   }
 
-  toggleWebFullscreen(): void {
+  async toggleWebFullscreen(): Promise<void> {
     if (this.webFullscreen) this.exitWebFullscreen();
-    else this.enterWebFullscreen();
+    else await this.enterWebFullscreen();
   }
 
   get isWebFullscreen(): boolean {
@@ -498,6 +500,8 @@ export class SweetPlayer {
     this.contextMenu?.destroy();
     this.controls.destroy();
     this.tapFlash.destroy();
+    // 清理可能悬挂的 restore listener（load 失败 / metadata 未到时）
+    this.restoreAbort?.abort();
     this.disposers.forEach((d) => d());
     if (this.hideTimer) clearTimeout(this.hideTimer);
     if (this.clickTimer) clearTimeout(this.clickTimer);
@@ -529,23 +533,9 @@ export class SweetPlayer {
       // 引擎自动接入的档位：直接切 level（-1 为自动）
       this.media.setLevel(quality.value);
     } else if (quality.src) {
-      const time = this.video.currentTime;
-      const paused = this.video.paused;
-      this.media.load(quality.src);
       // load 是异步挂引擎的，需等 loadedmetadata 后再恢复进度。
-      // 用一次性 listener + currentSrc 校验，避免被后续 load 覆盖时误 seek。
-      const targetSrc = quality.src;
-      const restore = () => {
-        this.video.removeEventListener('loadedmetadata', restore);
-        if (this.media.currentSrc !== targetSrc) return;
-        try {
-          this.video.currentTime = time;
-        } catch {
-          /* 某些引擎在 metadata 阶段仍拒绝 seek，忽略即可 */
-        }
-        if (!paused) void this.video.play().catch(() => {});
-      };
-      this.video.addEventListener('loadedmetadata', restore);
+      // 用 reloadAndRestore 统一处理 once + currentSrc 校验 + destroy 清理。
+      this.reloadAndRestore(this.video.currentTime, this.video.paused, quality.src);
     }
     this.options.onQualityChange?.(quality);
     this.emitter.emit('qualitychange', quality);
@@ -745,10 +735,41 @@ export class SweetPlayer {
     this.state.hideLoading();
     this.state.showError(() => {
       const time = this.video.currentTime;
-      this.media.reload();
-      if (time > 0) this.video.currentTime = time;
-      void this.play().catch(() => {});
+      const paused = this.video.paused;
+      this.reloadAndRestore(time, paused);
     });
+  }
+
+  /**
+   * reload/load 后等 loadedmetadata 再恢复进度并续播。
+   * - 用 AbortController 管理 listener：连点切换 / destroy 时 abort，避免悬挂监听。
+   * - currentSrc 校验：被后续 load 覆盖时 no-op，不误 seek。
+   * showErrorStateUi 与 handleQualitySelect 共用此 helper。
+   */
+  private reloadAndRestore(time: number, paused: boolean, src?: string): void {
+    // 清理上一次未完成的 restore（连点切换场景）
+    this.restoreAbort?.abort();
+    const ac = new AbortController();
+    this.restoreAbort = ac;
+
+    const targetSrc = src ?? this.media.currentSrc;
+    if (src) this.media.load(src);
+    else this.media.reload();
+
+    if (time <= 0) {
+      if (!paused) void this.video.play().catch(() => {});
+      return;
+    }
+    const restore = () => {
+      if (this.media.currentSrc !== targetSrc) return; // 被后续 load 覆盖
+      try {
+        this.video.currentTime = time;
+      } catch {
+        /* metadata 阶段可能仍拒绝 seek，忽略 */
+      }
+      if (!paused) void this.video.play().catch(() => {});
+    };
+    this.video.addEventListener('loadedmetadata', restore, { once: true, signal: ac.signal });
   }
 
   // ---------- 控制栏自动隐藏 ----------
