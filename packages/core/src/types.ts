@@ -51,6 +51,7 @@ export type ControlName =
   | 'poster'
   | 'fullscreen'
   | 'webFullscreen'
+  | 'loop'
   | 'settings'
   | 'title'
   | 'progress'
@@ -84,6 +85,12 @@ export interface SweetPlayerOptions {
   id?: string;
   autoplay?: boolean;
   muted?: boolean;
+  /**
+   * 循环播放。开启后视频播完自动从头重播——
+   * 浏览器行为：`video.loop = true` 时**不会**触发 `ended` 事件，
+   * 因此 `autoNext` 与依赖 `ended` 的插件均不会激活。
+   */
+  loop?: boolean;
   /** 初始音量 0-100，默认 100 */
   volume?: number;
   /** 快进快退步长（秒），默认 10 */
@@ -146,6 +153,8 @@ export interface PlayerEventMap {
   fullscreenchange: boolean;
   /** 网页全屏（CSS 撑满视口，非浏览器 Fullscreen API）状态变化 */
   webfullscreenchange: boolean;
+  /** 循环播放开关变化 */
+  loopchange: boolean;
   pipchange: boolean;
   aspectratiochange: AspectRatio;
   qualitychange: QualityLevel;

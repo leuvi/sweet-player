@@ -122,6 +122,7 @@ const player = new SweetPlayer({
 | `toggleFullscreen()` | Enter / exit browser fullscreen (Fullscreen API). |
 | `toggleWebFullscreen()` | Enter / exit **web fullscreen** — CSS-only, fills the browser viewport. Works inside iframes without `allow="fullscreen"`. |
 | `togglePip()` | Enter / exit Picture-in-Picture. |
+| `setLoop(loop)` | Toggle loop playback. When on, the browser does not fire `ended`, so `autoNext` and plugins depending on `ended` won't trigger. |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `load(src)` | Load a new source without recreating the player. |
 | `setTitle(title)` | Update the top-left title text. |
@@ -146,6 +147,7 @@ const player = new SweetPlayer({
 | `fullscreenchange` | `boolean` (is fullscreen) | Browser fullscreen state changes. |
 | `webfullscreenchange` | `boolean` (is web fullscreen) | Web fullscreen state changes. |
 | `pipchange` | `boolean` (is in PiP) | Picture-in-Picture state changes. |
+| `loopchange` | `boolean` (is loop on) | Loop toggle changes. |
 | `aspectratiochange` | `AspectRatio` | The forced aspect ratio changes. |
 | `qualitychange` | `QualityLevel` | Quality is switched. |
 | `audiotrackchange` | `AudioTrackInfo` | Audio track is switched. |
@@ -436,6 +438,7 @@ Available values:
 | `audioTrack` | Audio-track row in the settings panel |
 | `volume` | Volume control |
 | `pip` | Picture-in-Picture toggle in the settings panel |
+| `loop` | Loop-playback toggle in the settings panel |
 | `heatmap` | Most-replayed curve above the progress bar |
 | `thumbnails` | Progress-bar hover preview thumbnails |
 | `poster` | Cover image before playback starts |

@@ -16,6 +16,7 @@ export interface LocaleStrings {
   fullscreen: string;
   webFullscreen: string;
   pip: string;
+  loop: string;
   heatmap: string;
   empty: string;
   closeStats: string;
@@ -68,6 +69,7 @@ const zhCN: LocaleStrings = {
   fullscreen: '全屏 (F)',
   webFullscreen: '网页全屏 (W)',
   pip: '画中画 (P)',
+  loop: '循环播放',
   heatmap: '热度曲线',
   empty: '暂无可选项',
   closeStats: '关闭统计信息',
@@ -120,6 +122,7 @@ const en: LocaleStrings = {
   fullscreen: 'Fullscreen (F)',
   webFullscreen: 'Web fullscreen (W)',
   pip: 'Picture-in-Picture (P)',
+  loop: 'Loop',
   heatmap: 'Most replayed',
   empty: 'Nothing available',
   closeStats: 'Close stats',

@@ -5,6 +5,7 @@ export interface StoredPrefs {
   volume?: number;
   muted?: boolean;
   rate?: number;
+  loop?: boolean;
 }
 
 function safeGet(key: string): string | null {

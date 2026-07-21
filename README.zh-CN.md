@@ -122,6 +122,7 @@ const player = new SweetPlayer({
 | `toggleFullscreen()` | 进入 / 退出浏览器全屏（Fullscreen API） |
 | `toggleWebFullscreen()` | 进入 / 退出**网页全屏**——纯 CSS 撑满视口，iframe 嵌入不需 `allow="fullscreen"` |
 | `togglePip()` | 进入 / 退出画中画 |
+| `setLoop(loop)` | 切换循环播放。开启后浏览器不触发 `ended`，`autoNext` 与依赖 `ended` 的插件均不激活 |
 | `screenshot()` | 截取当前画面，优先复制剪贴板，否则下载 |
 | `load(src)` | 加载新的播放源，无需重建播放器 |
 | `setTitle(title)` | 更新左上角标题 |
@@ -146,6 +147,7 @@ const player = new SweetPlayer({
 | `fullscreenchange` | `boolean`（是否浏览器全屏） | 浏览器全屏状态变化 |
 | `webfullscreenchange` | `boolean`（是否网页全屏） | 网页全屏状态变化 |
 | `pipchange` | `boolean`（是否画中画） | 画中画状态变化 |
+| `loopchange` | `boolean`（是否循环） | 循环播放开关变化 |
 | `aspectratiochange` | `AspectRatio` | 强制画面比例切换 |
 | `qualitychange` | `QualityLevel` | 画质切换 |
 | `audiotrackchange` | `AudioTrackInfo` | 音轨切换 |
@@ -436,6 +438,7 @@ new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 | `audioTrack` | 设置面板中的音轨行 |
 | `volume` | 音量控件 |
 | `pip` | 设置面板中的画中画开关 |
+| `loop` | 设置面板中的循环播放开关 |
 | `heatmap` | 进度条上方的热度曲线 |
 | `thumbnails` | 进度条悬停的预览缩略图 |
 | `poster` | 播放前的封面图 |

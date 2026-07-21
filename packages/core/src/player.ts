@@ -110,6 +110,7 @@ export class SweetPlayer {
     const prefs = persist ? loadPrefs() : {};
     this.video.volume = clamp(prefs.volume ?? options.volume ?? 100, 0, 100) / 100;
     this.video.muted = prefs.muted ?? options.muted ?? false;
+    this.video.loop = prefs.loop ?? options.loop ?? false;
     if (options.autoplay) this.video.autoplay = true;
 
     const autoQuality = options.autoQuality !== false;
@@ -172,6 +173,7 @@ export class SweetPlayer {
         toggleFullscreen: () => this.toggleFullscreen(),
         toggleWebFullscreen: () => this.toggleWebFullscreen(),
         togglePip: () => this.togglePip(),
+        toggleLoop: () => this.setLoop(!this.video.loop),
         selectQuality: (q) => this.handleQualitySelect(q),
         selectAudioTrack: (t) => this.handleAudioTrackSelect(t),
         onPrev: options.onPrev,
@@ -393,6 +395,23 @@ export class SweetPlayer {
     return this.webFullscreen;
   }
 
+  /**
+   * 循环播放。开启后视频播完自动重播——
+   * `video.loop = true` 时浏览器**不会**触发 `ended`，因此 `autoNext` 与依赖 `ended` 的插件都不激活。
+   */
+  setLoop(loop: boolean): void {
+    if (this.video.loop === loop) return;
+    log('播放器', `循环播放: ${loop ? '开' : '关'}`);
+    this.video.loop = loop;
+    this.controls.updateLoop(loop);
+    this.emitter.emit('loopchange', loop);
+    this.osd.flash(loop ? this.i18n.t('loop') + ' ✓' : this.i18n.t('loop') + ' ✕');
+  }
+
+  get loop(): boolean {
+    return this.video.loop;
+  }
+
   async togglePip(): Promise<void> {
     try {
       if (document.pictureInPictureElement === this.video) {
@@ -547,11 +566,14 @@ export class SweetPlayer {
   private bindPersistence(): void {
     const onVolume = () => savePrefs({ volume: Math.round(this.video.volume * 100), muted: this.video.muted });
     const onRate = () => savePrefs({ rate: this.video.playbackRate });
+    // loop 通过 setLoop() 内部改动 video.loop，走 loopchange 事件持久化；video 元素本身不派发 loop 变化事件
+    const offLoop = this.emitter.on('loopchange', (loop) => savePrefs({ loop }));
     this.video.addEventListener('volumechange', onVolume);
     this.video.addEventListener('ratechange', onRate);
     this.disposers.push(() => {
       this.video.removeEventListener('volumechange', onVolume);
       this.video.removeEventListener('ratechange', onRate);
+      offLoop();
     });
   }
 

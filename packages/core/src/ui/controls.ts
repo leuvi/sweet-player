@@ -31,6 +31,7 @@ export interface ControlsContext {
     toggleFullscreen(): void;
     toggleWebFullscreen(): void;
     togglePip(): void;
+    toggleLoop(): void;
     selectQuality(q: QualityLevel): void;
     selectAudioTrack(t: AudioTrackInfo): void;
     onPrev?: () => void;
@@ -52,6 +53,7 @@ export interface Controls {
   updateFullscreen(fs: boolean): void;
   updateWebFullscreen(wfs: boolean): void;
   updatePip(pip: boolean): void;
+  updateLoop(loop: boolean): void;
   updateRatio(ratio: AspectRatio): void;
   destroy(): void;
 }
@@ -182,6 +184,20 @@ export function createControls(ctx: ControlsContext): Controls {
             },
           }]
         : []),
+      ...(show('loop')
+        ? [{
+            key: 'loop',
+            label: i18n.t('loop'),
+            currentValue: '',
+            items: [],
+            activeValue: undefined as boolean | undefined,
+            onSelect: () => {},
+            toggle: {
+              checked: video.loop,
+              onToggle: () => actions.toggleLoop(),
+            },
+          }]
+        : []),
       ...(hasHeatmap
         ? [{
             key: 'heatmap',
@@ -268,6 +284,9 @@ export function createControls(ctx: ControlsContext): Controls {
     },
     updatePip(pip) {
       settingsPanel.updateSection('pip', { toggle: { checked: pip } });
+    },
+    updateLoop(loop) {
+      settingsPanel.updateSection('loop', { toggle: { checked: loop } });
     },
     updateRatio(ratio) {
       const label = ratio === 'original' ? i18n.t('ratioOriginal') : ratio;
