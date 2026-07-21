@@ -1,6 +1,6 @@
 {
   "name": "@sweet-player/core",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Framework-agnostic HLS video player with built-in UI",
   "type": "module",
   "main": "./dist/index.cjs",
