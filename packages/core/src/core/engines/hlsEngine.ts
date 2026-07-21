@@ -15,10 +15,13 @@ export function createHlsEngine(
 
 /** 网络错误最多自动 startLoad() 恢复的次数（累计成功 frag 加载后重置） */
 const NETWORK_RETRY_LIMIT = 2;
+/** 媒体错误最多自动 recoverMediaError() 恢复的次数（成功 frag 加载后重置） */
+const MEDIA_RETRY_LIMIT = 2;
 
 class HlsEngine implements MediaEngine {
   private hls: Hls;
   private networkRetries = 0;
+  private mediaRetries = 0;
 
   constructor(
     private video: HTMLVideoElement,
@@ -29,9 +32,10 @@ class HlsEngine implements MediaEngine {
     this.hls.on(Hls.Events.MEDIA_ATTACHED, () => {
       log('hls事件', '媒体成功附加到播放器');
     });
-    // 分片成功加载即视为已恢复，重置网络重试计数
+    // 分片成功加载即视为已恢复，重置重试计数
     this.hls.on(Hls.Events.FRAG_LOADED, () => {
       this.networkRetries = 0;
+      this.mediaRetries = 0;
     });
     this.hls.on(Hls.Events.ERROR, (_event, data) => {
       log('hls事件', `${data.fatal ? '致命' : ''}错误: ${data.type} - ${data.details}`);
@@ -52,7 +56,14 @@ class HlsEngine implements MediaEngine {
           this.callbacks.onError({ type: 'hls-network', detail: data });
           break;
         case Hls.ErrorTypes.MEDIA_ERROR:
-          this.hls.recoverMediaError();
+          // 有限次尝试 recoverMediaError() 恢复；超限后上报错误蒙层
+          if (this.mediaRetries < MEDIA_RETRY_LIMIT) {
+            this.mediaRetries++;
+            log('hls事件', `媒体错误自动重试 ${this.mediaRetries}/${MEDIA_RETRY_LIMIT}`);
+            this.hls.recoverMediaError();
+            return;
+          }
+          this.callbacks.onError({ type: 'hls-media', detail: data });
           break;
         default:
           this.callbacks.onError({ type: 'hls-fatal', detail: data });
