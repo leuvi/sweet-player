@@ -770,7 +770,9 @@ body.sp-web-fullscreen-lock {
 .sp-settings-panel {
   position: absolute;
   bottom: calc(100% + 8px);
-  right: 0;
+  /* 面板中心对齐设置按钮（面板 180px 比按钮宽，向两侧对称展开） */
+  left: 50%;
+  transform: translateX(-50%);
   width: 180px;
   background: rgba(28, 28, 28, 0.95);
   border-radius: 6px;
