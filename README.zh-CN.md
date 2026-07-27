@@ -456,15 +456,20 @@ new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 
 音量、静音、倍速是全局记忆；播放进度按视频记忆，传了 `id` 才启用。
 
-**默认全部存 `localStorage`**，不用做任何配置：
+**两者默认都会自动存**，不用做任何配置：
 
 ```ts
 new SweetPlayer({ container: '#player', src: '...', id: 'video-123' });
 ```
 
-不想记偏好就 `persist: false`，不想记进度就不传 `id`。
+| | 存在哪 | 保留多久 |
+|---|---|---|
+| 偏好 | `localStorage` | 长期保留，跨标签页、跨会话 |
+| 播放进度 | `sessionStorage` | 仅刷新有效，关闭标签页即清除 |
 
-**想存到自己后端**（多端同步场景），传两个回调，再把取到的数据交给 `restore()`：
+两者各自只占一个键，看再多视频也不会往存储里堆条目。不想记偏好就 `persist: false`，不想记进度就不传 `id`。
+
+**想存到自己后端**——需要进度在关闭标签页后依然保留，或要做多端同步时——传两个回调，再把取到的数据交给 `restore()`：
 
 ```ts
 const player = new SweetPlayer({

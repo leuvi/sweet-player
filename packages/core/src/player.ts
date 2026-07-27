@@ -46,8 +46,8 @@ const LOGO_ICON = '<svg viewBox="0 0 64 64" width="14" height="14" style="vertic
 const PROGRESS_SAVE_INTERVAL = 5000;
 /** 偏好写入防抖：拖动音量条会高频触发 volumechange，停下后才写一次 */
 const PREFS_SAVE_DEBOUNCE = 800;
-/** 进度写入本身已由 PROGRESS_SAVE_INTERVAL 定时驱动，队列只用于单飞保护，无需再延迟 */
-const PROGRESS_SAVE_DEBOUNCE = 0;
+/** 进度写入防抖：seek 连点（方向键、拖动进度条）会短时间内多次触发，合并成一次写入 */
+const PROGRESS_SAVE_DEBOUNCE = 1000;
 /** 距结尾小于该秒数视为看完，清除断点 */
 const PROGRESS_END_GUARD = 10;
 
@@ -622,14 +622,14 @@ export class SweetPlayer {
 
   private bindProgressMemory(id: string): void {
     const onSaveProgress = this.options.onSaveProgress;
-    if (onSaveProgress) {
-      // 业务方自管进度：只负责写，读由业务方拿到数据后调 restore()
-      this.progressQueue = createSaveQueue<number | null>(
-        (seconds) => onSaveProgress(id, seconds),
-        PROGRESS_SAVE_DEBOUNCE,
-        '进度',
-      );
-    } else {
+    // 两条路径共用队列：seek 连点时合并写入，pause / pagehide / destroy 时 flush 立即落盘
+    const write = onSaveProgress
+      ? (seconds: number | null) => onSaveProgress(id, seconds)
+      : (seconds: number | null) => (seconds === null ? clearProgress(id) : saveProgress(id, seconds));
+    this.progressQueue = createSaveQueue<number | null>(write, PROGRESS_SAVE_DEBOUNCE, '进度');
+
+    // 业务方自管进度时只负责写，读由业务方拿到数据后调 restore()
+    if (!onSaveProgress) {
       const restore = () => {
         const saved = loadProgress(id);
         if (saved !== null && saved > 3 && saved < this.video.duration - PROGRESS_END_GUARD) {
@@ -638,24 +638,33 @@ export class SweetPlayer {
       };
       this.video.addEventListener('loadedmetadata', restore, { once: true });
     }
+
     this.progressTimer = setInterval(() => {
       if (!this.video.paused) this.saveProgressNow();
     }, PROGRESS_SAVE_INTERVAL);
+
+    // 定时轮询只保证持续记录，seek 是用户明确的"从这里看"，值得立刻记一次
+    const onSeeked = () => this.saveProgressNow();
+    this.video.addEventListener('seeked', onSeeked);
+
+    // 刷新 / 关闭页面时 destroy() 通常不会被调用，这里兜底把最后的进度写掉
+    const onPageHide = () => {
+      this.saveProgressNow();
+      this.progressQueue?.flush();
+    };
+    window.addEventListener('pagehide', onPageHide);
+
+    this.disposers.push(() => {
+      this.video.removeEventListener('seeked', onSeeked);
+      window.removeEventListener('pagehide', onPageHide);
+    });
   }
 
   private saveProgressNow(): void {
-    const id = this.options.id;
-    if (!id || !this.video.duration) return;
+    if (!this.options.id || !this.video.duration) return;
     const ended = this.video.currentTime >= this.video.duration - PROGRESS_END_GUARD;
     if (!ended && this.video.currentTime <= 3) return; // 刚开头，没必要记
-
-    if (this.progressQueue) {
-      this.progressQueue.push(ended ? null : this.video.currentTime);
-    } else if (ended) {
-      clearProgress(id);
-    } else {
-      saveProgress(id, this.video.currentTime);
-    }
+    this.progressQueue?.push(ended ? null : this.video.currentTime);
   }
 
   // ---------- 内部：交互 ----------
@@ -681,13 +690,15 @@ export class SweetPlayer {
     listen('pause', () => {
       this.controls.updatePlayState(false);
       this.showControls();
-      // 暂停后用户可能直接关页面，5 秒定时来不及，这里补存一次
+      // 暂停是明确的停顿点，立即落盘而不是等防抖
       this.saveProgressNow();
+      this.progressQueue?.flush();
       this.emitter.emit('pause', undefined);
     });
     listen('ended', () => {
       log('原生事件', '播放结束');
       this.saveProgressNow();
+      this.progressQueue?.flush();
       this.showControls();
       const onNext = this.options.onNext;
       const autoNext = this.options.autoNext;

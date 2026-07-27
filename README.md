@@ -456,15 +456,20 @@ Available values:
 
 Volume, mute and playback rate are remembered globally; resume position is remembered per video when you pass an `id`.
 
-**By default everything goes to `localStorage`** — nothing to set up:
+**Both are stored for you by default** — nothing to set up:
 
 ```ts
 new SweetPlayer({ container: '#player', src: '...', id: 'video-123' });
 ```
 
-Set `persist: false` to stop remembering preferences; omit `id` to stop remembering position.
+| | Stored in | Survives |
+|---|---|---|
+| Preferences | `localStorage` | Indefinitely, across tabs and sessions |
+| Resume position | `sessionStorage` | Reloads only — cleared when the tab closes |
 
-**To store on your own backend instead** (for cross-device sync), pass the two callbacks and hand your saved data to `restore()`:
+Each uses a single key, so watching a lot of videos never piles up entries. Set `persist: false` to stop remembering preferences; omit `id` to stop remembering position.
+
+**To store on your own backend instead** — needed for resume position that outlives the tab, or for cross-device sync — pass the two callbacks and hand your saved data to `restore()`:
 
 ```ts
 const player = new SweetPlayer({

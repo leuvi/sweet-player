@@ -96,7 +96,11 @@ export interface SweetPlayerOptions {
   src: string;
   /** 左上角标题 */
   title?: string;
-  /** 视频唯一 ID：传入后自动记忆/恢复播放进度（断点续播） */
+  /**
+   * 视频唯一 ID：传入后自动记忆/恢复播放进度（断点续播）。
+   * 默认存 sessionStorage——刷新仍在，关闭标签页即失效；
+   * 需要更持久或跨端的进度请配合 `onSaveProgress` + `player.restore()`。
+   */
   id?: string;
   autoplay?: boolean;
   muted?: boolean;
@@ -143,7 +147,7 @@ export interface SweetPlayerOptions {
    */
   onSavePrefs?: (prefs: PlayerPrefs) => void | Promise<void>;
   /**
-   * 保存播放进度的回调。传入后进度不再写 localStorage。
+   * 保存播放进度的回调。传入后进度不再写 sessionStorage。
    * 触发时机：播放中每 5 秒、暂停时、`destroy()` 时。
    * `seconds` 为 `null` 表示已看完（距结尾 <10 秒），业务方应清除该条记录。
    */
