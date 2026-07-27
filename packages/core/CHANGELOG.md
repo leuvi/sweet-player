@@ -1,5 +1,13 @@
 # @sweet-player/core
 
+## 1.2.4
+
+### Patch Changes
+
+- ce95d03: **循环播放不再持久化**：此前循环开关会存入 `localStorage` 并跨会话恢复，导致在 A 视频开了循环后，打开 B 视频仍在循环。循环更接近"这一次想反复看"的临时意图而非长期偏好（YouTube / B 站 等均不持久化），现改为每次按 `options.loop` 初始化，默认关闭。
+
+  音量 / 静音 / 倍速的持久化不变。
+
 ## 1.2.3
 
 ### Patch Changes
