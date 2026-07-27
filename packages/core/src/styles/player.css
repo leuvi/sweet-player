@@ -855,11 +855,14 @@ body.sp-web-fullscreen-lock {
 }
 
 /* ---------- 行内开关 ---------- */
-.sp-settings-toggle-row {
-  cursor: pointer;
+/* 整行不可点，只有开关控件本身响应（滑块行同理） */
+.sp-settings-toggle-row,
+.sp-settings-slider-row {
+  cursor: default;
 }
 
 .sp-toggle {
+  cursor: pointer;
   position: relative;
   width: 30px;
   height: 17px;

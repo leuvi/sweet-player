@@ -82,7 +82,8 @@ export function createSettingsPanel(opts: {
           e.stopPropagation();
           sec.toggle!.onToggle();
         };
-        row.addEventListener('click', handler);
+        // 只有开关本身响应点击：点行内空白/文字不应误触发切换
+        track.addEventListener('click', handler);
         track.addEventListener('keydown', (e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
