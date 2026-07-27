@@ -454,89 +454,31 @@ new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 
 ## 持久化
 
-会被记住的有两类：**偏好**（音量、静音、倍速——全局共享，与具体视频无关）和**播放进度**（按 `id` 选项区分，每个视频独立）。
+音量、静音、倍速是全局记忆；播放进度按视频记忆，传了 `id` 才启用。
 
-### 默认——存本地，零配置
-
-只要状态在同一台设备上刷新后还在就够用，这就是默认行为，不用接任何接口：
+**默认全部存 `localStorage`**，不用做任何配置：
 
 ```ts
-new SweetPlayer({
-  container: '#player',
-  src: '...',
-  id: 'video-123',   // 传了 id 才会记进度
-});
+new SweetPlayer({ container: '#player', src: '...', id: 'video-123' });
 ```
 
-偏好存在 `localStorage` 的 `sweet-player:prefs`，进度存在 `sweet-player:progress:<id>`。不想记偏好就 `persist: false`，不想记进度就不传 `id`。
+不想记偏好就 `persist: false`，不想记进度就不传 `id`。
 
-### 需要多端同步——存自己后端，两个回调
-
-`localStorage` 是分浏览器的：手机上看到一半的进度，换电脑打开就没了。需要跨端时，把状态改走自己的后端。
-
-传了 `onSavePrefs` / `onSaveProgress`，对应那一项就不再写 `localStorage`。数据你自己从后端取，取到后交给 `player.restore()`：
+**想存到自己后端**（多端同步场景），传两个回调，再把取到的数据交给 `restore()`：
 
 ```ts
 const player = new SweetPlayer({
   container: '#player',
   src: '...',
   id: 'video-123',
-
-  // 库在该存的时候自动调用，已经节流好了
   onSavePrefs: (prefs) => api.savePrefs(prefs),                   // { volume, muted, rate }
-  onSaveProgress: (id, seconds) => api.saveProgress(id, seconds), // seconds 为 null 表示看完了，清掉
+  onSaveProgress: (id, seconds) => api.saveProgress(id, seconds), // null 表示看完了，删掉记录
 });
 
-// 数据什么时候到就什么时候调，metadata 还没加载完也没关系
-const saved = await api.load('video-123');
-player.restore(saved);   // { volume: 80, muted: false, rate: 1.5, time: 220 }
+player.restore(await api.load('video-123')); // { volume: 80, muted: false, rate: 1.5, time: 220 }
 ```
 
-你只写两个回调和一次 `restore()`，其余都由播放器处理：
-
-| 事项 | 播放器已处理 |
-|---|---|
-| 何时存偏好 | 音量/静音/倍速变化时，防抖 800ms——拖动音量条只发一次请求，不是几十次 |
-| 何时存进度 | 播放中每 5 秒、暂停时、`destroy()` 时 |
-| 视频看完 | 距结尾 10 秒内传 `seconds: null`，你据此删掉记录 |
-| 慢网络 | 同一时刻只有一个写请求在途，新值排队等前一个回来再发 |
-| 请求失败 | 记日志后静默，不打断播放 |
-| `restore()` 时机 | metadata 已就绪立即 seek，否则自动等 `loadedmetadata` |
-
-### 按需选择
-
-走哪种模式只看有没有传回调，所以可以运行时决定。「用户已登录」通常是需要同步的场景，但判断依据仅仅是传不传回调：
-
-```ts
-const useBackend = !!user;   // 或你自己的任何条件
-
-const player = new SweetPlayer({
-  container: '#player',
-  src: '...',
-  id: videoId,
-  onSavePrefs: useBackend ? (p) => api.savePrefs(p) : undefined,
-  onSaveProgress: useBackend ? (id, s) => api.saveProgress(id, s) : undefined,
-});
-
-if (useBackend) {
-  player.restore(await api.load(videoId));
-}
-```
-
-传 `undefined` 那一项就自动回落到 `localStorage`，不用额外写分支。两者互相独立，只把进度同步到后端、偏好继续留在 `localStorage` 也可以。
-
-### 关闭页面
-
-`destroy()` 会把待写的数据立即写掉，但页面卸载时浏览器可能掐断在途的 `fetch`。最后一刻的保存建议用 `sendBeacon`：
-
-```ts
-window.addEventListener('pagehide', () => {
-  navigator.sendBeacon('/api/progress', JSON.stringify({
-    id: videoId,
-    seconds: player.video.currentTime,
-  }));
-});
-```
+要写的就这些——节流、保存时机、失败处理都在库内部。`restore()` 随时可调，视频还没加载完也行。两个回调互相独立：只传 `onSaveProgress`，偏好就继续留在 `localStorage`。
 
 ## 全屏——浏览器全屏 vs 网页全屏
 
