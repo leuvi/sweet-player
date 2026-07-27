@@ -112,7 +112,8 @@ export class SweetPlayer {
     const prefs = persist ? loadPrefs() : {};
     this.video.volume = clamp(prefs.volume ?? options.volume ?? 100, 0, 100) / 100;
     this.video.muted = prefs.muted ?? options.muted ?? false;
-    this.video.loop = prefs.loop ?? options.loop ?? false;
+    // 循环不持久化：它是"这一次想循环看"的临时意图，不是长期偏好
+    this.video.loop = options.loop ?? false;
     if (options.autoplay) this.video.autoplay = true;
 
     const autoQuality = options.autoQuality !== false;
@@ -556,14 +557,11 @@ export class SweetPlayer {
   private bindPersistence(): void {
     const onVolume = () => savePrefs({ volume: Math.round(this.video.volume * 100), muted: this.video.muted });
     const onRate = () => savePrefs({ rate: this.video.playbackRate });
-    // loop 通过 setLoop() 内部改动 video.loop，走 loopchange 事件持久化；video 元素本身不派发 loop 变化事件
-    const offLoop = this.emitter.on('loopchange', (loop) => savePrefs({ loop }));
     this.video.addEventListener('volumechange', onVolume);
     this.video.addEventListener('ratechange', onRate);
     this.disposers.push(() => {
       this.video.removeEventListener('volumechange', onVolume);
       this.video.removeEventListener('ratechange', onRate);
-      offLoop();
     });
   }
 
