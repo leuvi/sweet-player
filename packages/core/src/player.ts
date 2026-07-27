@@ -16,6 +16,7 @@ import { createEl } from './utils/dom';
 import { clamp, formatTime } from './utils/time';
 import { injectStyle } from './utils/injectStyle';
 import { clearProgress, loadPrefs, loadProgress, savePrefs, saveProgress } from './utils/storage';
+import { createSaveQueue } from './utils/saveQueue';
 import { captureScreenshot } from './utils/screenshot';
 import { VERSION } from './version';
 import { log } from './logger';
@@ -25,7 +26,9 @@ import type {
   AudioTrackInfo,
   ControlName,
   PlayerEventMap,
+  PlayerPrefs,
   QualityLevel,
+  RestoreState,
   SweetPlayerOptions,
   SweetPlayerPlugin,
 } from './types';
@@ -41,6 +44,10 @@ const SINGLE_CLICK_DELAY = 250;
 const NPM_URL = 'https://www.npmjs.com/package/@sweet-player/core';
 const LOGO_ICON = '<svg viewBox="0 0 64 64" width="14" height="14" style="vertical-align:-2px"><defs><mask id="sp-m"><rect width="64" height="64" fill="white"/><rect x="11" y="21" width="42" height="32" rx="4" fill="black"/></mask></defs><line x1="26" y1="16" x2="18" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="16" x2="46" y2="7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><rect x="6" y="16" width="52" height="42" rx="8" fill="currentColor" mask="url(#sp-m)"/><path d="M32 32c-2-3.5-6.5-4.5-8.5-2s-1.2 6.5 8.5 13c9.7-6.5 10.5-10.5 8.5-13s-6.5-1.5-8.5 2z" fill="currentColor"/></svg>';
 const PROGRESS_SAVE_INTERVAL = 5000;
+/** 偏好写入防抖：拖动音量条会高频触发 volumechange，停下后才写一次 */
+const PREFS_SAVE_DEBOUNCE = 800;
+/** 进度写入本身已由 PROGRESS_SAVE_INTERVAL 定时驱动，队列只用于单飞保护，无需再延迟 */
+const PROGRESS_SAVE_DEBOUNCE = 0;
 /** 距结尾小于该秒数视为看完，清除断点 */
 const PROGRESS_END_GUARD = 10;
 
@@ -75,6 +82,9 @@ export class SweetPlayer {
   private onEscapeKey: ((e: KeyboardEvent) => void) | null = null;
   /** reload/load 后等待 loadedmetadata 恢复进度的 AbortController，连点切换或 destroy 时 abort */
   private restoreAbort: AbortController | null = null;
+  /** 偏好 / 进度的节流写入队列；未传对应回调时为 null（走 localStorage 或完全不存） */
+  private prefsQueue: ReturnType<typeof createSaveQueue<PlayerPrefs>> | null = null;
+  private progressQueue: ReturnType<typeof createSaveQueue<number | null>> | null = null;
   private disposers: Array<() => void> = [];
   private pluginCleanups: Array<() => void> = [];
   private destroyed = false;
@@ -107,9 +117,11 @@ export class SweetPlayer {
     // 'poster' 被隐藏时不设置该属性，避免不必要的封面图请求
     if (options.poster && !hidden.has('poster')) this.video.poster = options.poster;
 
-    // 音量/倍速：localStorage 偏好优先于选项默认值
+    // 音量/倍速：localStorage 偏好优先于选项默认值。
+    // 传了 onSavePrefs 表示业务方自管存储，此时不读 localStorage——由业务方拿到数据后调 restore()。
     const persist = options.persist !== false;
-    const prefs = persist ? loadPrefs() : {};
+    const remotePrefs = !!options.onSavePrefs;
+    const prefs = persist && !remotePrefs ? loadPrefs() : {};
     this.video.volume = clamp(prefs.volume ?? options.volume ?? 100, 0, 100) / 100;
     this.video.muted = prefs.muted ?? options.muted ?? false;
     // 循环不持久化：它是"这一次想循环看"的临时意图，不是长期偏好
@@ -260,7 +272,7 @@ export class SweetPlayer {
     this.controls.volume.update(Math.round(this.video.volume * 100), this.video.muted);
     this.controls.updateRate(this.video.playbackRate);
 
-    if (persist) this.bindPersistence();
+    if (persist || remotePrefs) this.bindPersistence();
     if (options.id) this.bindProgressMemory(options.id);
 
     options.plugins?.forEach((p) => this.use(p));
@@ -439,6 +451,42 @@ export class SweetPlayer {
     }
   }
 
+  /**
+   * 套用一份已保存的状态（音量 / 静音 / 倍速 / 播放进度）。
+   *
+   * 供业务方从自己的后端取到数据后调用，随时可调：媒体尚未就绪时
+   * 会自动等到 `loadedmetadata` 再 seek。传入的字段才会被套用，其余保持不变。
+   *
+   * ```ts
+   * const saved = await api.load(videoId);
+   * player.restore(saved); // { volume: 80, muted: false, rate: 1.5, time: 220 }
+   * ```
+   */
+  restore(state: RestoreState): void {
+    if (typeof state.volume === 'number') {
+      this.video.volume = clamp(state.volume, 0, 100) / 100;
+    }
+    if (typeof state.muted === 'boolean') this.video.muted = state.muted;
+    if (typeof state.rate === 'number' && state.rate > 0) {
+      // 换源会把 playbackRate 重置为 defaultPlaybackRate，两个都设
+      this.video.defaultPlaybackRate = state.rate;
+      this.video.playbackRate = state.rate;
+    }
+    // 上面直接改 video 属性不会经过 setVolume/setRate，显式同步一次控件
+    this.controls.volume.update(Math.round(this.video.volume * 100), this.video.muted);
+    this.controls.updateRate(this.video.playbackRate);
+
+    const time = state.time;
+    if (typeof time !== 'number' || time <= 3) return;
+    const seek = () => {
+      // 距结尾太近就不跳了，否则一进来就是结束态
+      if (this.video.duration && time >= this.video.duration - PROGRESS_END_GUARD) return;
+      this.video.currentTime = time;
+    };
+    if (this.video.readyState >= 1) seek();
+    else this.video.addEventListener('loadedmetadata', seek, { once: true });
+  }
+
   load(src: string): void {
     this.state.hideEnded();
     this.state.hideError();
@@ -489,6 +537,7 @@ export class SweetPlayer {
     if (this.destroyed) return;
     this.destroyed = true;
     this.saveProgressNow();
+    this.progressQueue?.flush(); // 队列是异步的，销毁前立即写掉
     this.emitter.emit('destroy', undefined);
     this.pluginCleanups.forEach((d) => d());
     // 销毁前保证网页全屏被解除，避免残留 body class 与 escape listener
@@ -555,24 +604,40 @@ export class SweetPlayer {
   // ---------- 内部：持久化 ----------
 
   private bindPersistence(): void {
-    const onVolume = () => savePrefs({ volume: Math.round(this.video.volume * 100), muted: this.video.muted });
-    const onRate = () => savePrefs({ rate: this.video.playbackRate });
+    // 有 onSavePrefs 走业务方回调，否则回落到 localStorage。两条路径共用同一个节流队列。
+    const write = this.options.onSavePrefs ?? ((p: PlayerPrefs) => savePrefs(p));
+    this.prefsQueue = createSaveQueue<PlayerPrefs>(write, PREFS_SAVE_DEBOUNCE, '偏好');
+
+    const onVolume = () =>
+      this.prefsQueue?.push({ volume: Math.round(this.video.volume * 100), muted: this.video.muted });
+    const onRate = () => this.prefsQueue?.push({ rate: this.video.playbackRate });
     this.video.addEventListener('volumechange', onVolume);
     this.video.addEventListener('ratechange', onRate);
     this.disposers.push(() => {
       this.video.removeEventListener('volumechange', onVolume);
       this.video.removeEventListener('ratechange', onRate);
+      this.prefsQueue?.flush(); // 销毁前把待写的偏好写掉
     });
   }
 
   private bindProgressMemory(id: string): void {
-    const restore = () => {
-      const saved = loadProgress(id);
-      if (saved !== null && saved > 3 && saved < this.video.duration - PROGRESS_END_GUARD) {
-        this.video.currentTime = saved;
-      }
-    };
-    this.video.addEventListener('loadedmetadata', restore, { once: true });
+    const onSaveProgress = this.options.onSaveProgress;
+    if (onSaveProgress) {
+      // 业务方自管进度：只负责写，读由业务方拿到数据后调 restore()
+      this.progressQueue = createSaveQueue<number | null>(
+        (seconds) => onSaveProgress(id, seconds),
+        PROGRESS_SAVE_DEBOUNCE,
+        '进度',
+      );
+    } else {
+      const restore = () => {
+        const saved = loadProgress(id);
+        if (saved !== null && saved > 3 && saved < this.video.duration - PROGRESS_END_GUARD) {
+          this.video.currentTime = saved;
+        }
+      };
+      this.video.addEventListener('loadedmetadata', restore, { once: true });
+    }
     this.progressTimer = setInterval(() => {
       if (!this.video.paused) this.saveProgressNow();
     }, PROGRESS_SAVE_INTERVAL);
@@ -581,9 +646,14 @@ export class SweetPlayer {
   private saveProgressNow(): void {
     const id = this.options.id;
     if (!id || !this.video.duration) return;
-    if (this.video.currentTime >= this.video.duration - PROGRESS_END_GUARD) {
+    const ended = this.video.currentTime >= this.video.duration - PROGRESS_END_GUARD;
+    if (!ended && this.video.currentTime <= 3) return; // 刚开头，没必要记
+
+    if (this.progressQueue) {
+      this.progressQueue.push(ended ? null : this.video.currentTime);
+    } else if (ended) {
       clearProgress(id);
-    } else if (this.video.currentTime > 3) {
+    } else {
       saveProgress(id, this.video.currentTime);
     }
   }
@@ -611,6 +681,8 @@ export class SweetPlayer {
     listen('pause', () => {
       this.controls.updatePlayState(false);
       this.showControls();
+      // 暂停后用户可能直接关页面，5 秒定时来不及，这里补存一次
+      this.saveProgressNow();
       this.emitter.emit('pause', undefined);
     });
     listen('ended', () => {

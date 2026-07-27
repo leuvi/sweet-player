@@ -59,7 +59,7 @@ player.destroy();
 - **Keyboard shortcuts**: Space for play/pause, arrow keys for seeking (hold for accelerating seek 10→30→60 s/s), ↑↓ for volume, F for browser fullscreen, W for web fullscreen (works inside iframes without `allow="fullscreen"`), M for mute
 - **Touch gestures**: Horizontal swipe to seek, right-half vertical swipe for volume, double-tap to seek/fullscreen, single tap to toggle controls
 - **Auto quality**: HLS / DASH multi-level quality/audio tracks auto-populate menus; also supports custom lists
-- **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback
+- **Persistence**: Volume/playback rate stored in localStorage; pass `id` for resume playback. For cross-device sync, route it through your own backend with `onSavePrefs` / `onSaveProgress` + `player.restore()` — throttling, save timing and failure handling stay inside the player
 - **Heatmap**: Optional "most replayed" curve above the progress bar (pass `heatmap`)
 - **Poster & preview thumbnails**: Cover image before playback (`poster`), progress-bar hover preview from a WebVTT track (`thumbnails`)
 - **State overlays**: Buffering spinner, error retry, ended replay + auto-next countdown
@@ -279,6 +279,7 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 | `toggleWebFullscreen()` | Enter / exit **web fullscreen** — CSS-only, fills the browser viewport. Works inside iframes without `allow="fullscreen"`. |
 | `togglePip()` | Enter / exit Picture-in-Picture. |
 | `setLoop(loop)` | Toggle loop playback. When on, the browser does not fire `ended`, so `autoNext` and plugins depending on `ended` won't trigger. |
+| `restore(state)` | Apply saved `{ volume?, muted?, rate?, time? }`. Safe to call before metadata loads — the seek waits. |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `load(src)` | Load a new source without recreating the player. |
 | `setTitle(title)` | Update the top-left title text. |

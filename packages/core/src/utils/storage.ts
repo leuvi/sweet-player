@@ -33,8 +33,17 @@ export function loadPrefs(): StoredPrefs {
   }
 }
 
+/**
+ * 合并写入。只落盘当前支持的字段——历史遗留字段（如曾经存过的 loop）
+ * 会在下一次写入时被自然清除，不会被 `...loadPrefs()` 一直搬运下去。
+ */
 export function savePrefs(prefs: StoredPrefs): void {
-  safeSet(PREFS_KEY, JSON.stringify({ ...loadPrefs(), ...prefs }));
+  const merged: StoredPrefs = { ...loadPrefs(), ...prefs };
+  const clean: StoredPrefs = {};
+  if (merged.volume !== undefined) clean.volume = merged.volume;
+  if (merged.muted !== undefined) clean.muted = merged.muted;
+  if (merged.rate !== undefined) clean.rate = merged.rate;
+  safeSet(PREFS_KEY, JSON.stringify(clean));
 }
 
 export function loadProgress(id: string): number | null {

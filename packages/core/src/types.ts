@@ -25,6 +25,21 @@ export interface HeatmapPoint {
 
 export type AspectRatio = 'original' | '21:9' | '16:9' | '4:3' | (string & {});
 
+/** 需要持久化的播放器偏好（全局，与具体视频无关） */
+export interface PlayerPrefs {
+  /** 音量 0-100 */
+  volume?: number;
+  muted?: boolean;
+  /** 倍速，如 1.5 */
+  rate?: number;
+}
+
+/** `player.restore()` 接受的状态：偏好 + 该视频的播放进度 */
+export interface RestoreState extends PlayerPrefs {
+  /** 播放进度（秒）。媒体未就绪时会自动等到可 seek 时再跳 */
+  time?: number;
+}
+
 export interface LongSeekOptions {
   /** 长按阶梯步长（秒），按住时逐级升档，默认 [10, 30, 60] */
   steps?: number[];
@@ -116,8 +131,23 @@ export interface SweetPlayerOptions {
    * 业务传入 qualities/audioTracks 时以业务列表为准。
    */
   autoQuality?: boolean;
-  /** 记忆音量/静音/倍速到 localStorage（默认 true） */
+  /**
+   * 记忆音量/静音/倍速到 localStorage（默认 true）。
+   * 传了 `onSavePrefs` 时本项对偏好无效——偏好改走回调，不再写 localStorage。
+   */
   persist?: boolean;
+  /**
+   * 保存播放器偏好的回调（音量 / 静音 / 倍速）。
+   * 传入后偏好不再写 localStorage，改由业务方存到自己的后端。
+   * 库已做节流（拖动音量条只在停下后触发一次），失败不影响播放。
+   */
+  onSavePrefs?: (prefs: PlayerPrefs) => void | Promise<void>;
+  /**
+   * 保存播放进度的回调。传入后进度不再写 localStorage。
+   * 触发时机：播放中每 5 秒、暂停时、`destroy()` 时。
+   * `seconds` 为 `null` 表示已看完（距结尾 <10 秒），业务方应清除该条记录。
+   */
+  onSaveProgress?: (id: string, seconds: number | null) => void | Promise<void>;
   /** 播放结束后自动播放下一个：true = 5 秒倒计时，数字 = 自定义秒数（需配合 onNext） */
   autoNext?: boolean | number;
   /** UI 语言，默认 'zh-CN'，内置 'en'；可用 registerLocale 注册其他语言 */

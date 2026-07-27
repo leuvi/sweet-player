@@ -20,6 +20,13 @@ describe('prefs storage', () => {
     localStorage.setItem('sweet-player:prefs', '{not json');
     expect(loadPrefs()).toEqual({});
   });
+
+  it('drops legacy fields left over from older versions', () => {
+    // 1.2.3 及更早版本存过 loop，合并写入会一直把它搬运下去
+    localStorage.setItem('sweet-player:prefs', JSON.stringify({ volume: 100, muted: true, loop: false }));
+    savePrefs({ rate: 1.5 });
+    expect(loadPrefs()).toEqual({ volume: 100, muted: true, rate: 1.5 });
+  });
 });
 
 describe('progress storage', () => {

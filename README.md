@@ -99,6 +99,8 @@ const player = new SweetPlayer({
   onNext: () => {},
   onQualityChange: (q) => {},
   onAudioTrackChange: (t) => {},
+  onSavePrefs: (prefs) => {},          // Save to your backend instead of localStorage
+  onSaveProgress: (id, seconds) => {}, // seconds === null means finished — clear the record
 });
 ```
 
@@ -123,6 +125,7 @@ const player = new SweetPlayer({
 | `toggleWebFullscreen()` | Enter / exit **web fullscreen** — CSS-only, fills the browser viewport. Works inside iframes without `allow="fullscreen"`. |
 | `togglePip()` | Enter / exit Picture-in-Picture. |
 | `setLoop(loop)` | Toggle loop playback. When on, the browser does not fire `ended`, so `autoNext` and plugins depending on `ended` won't trigger. |
+| `restore(state)` | Apply saved `{ volume?, muted?, rate?, time? }`. Safe to call before metadata loads — the seek waits. See [Persistence](#persistence). |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `load(src)` | Load a new source without recreating the player. |
 | `setTitle(title)` | Update the top-left title text. |
@@ -448,6 +451,92 @@ Available values:
 | `title` | Top-left title |
 | `progress` | Whole progress bar (also disables heatmap & thumbnails) |
 | `contextMenu` | Custom right-click menu |
+
+## Persistence
+
+Two things get remembered: **preferences** (volume, mute, playback rate — global, shared across videos) and **resume position** (per video, keyed by the `id` option).
+
+### Default — localStorage, zero setup
+
+Good enough whenever state only needs to survive a reload on the same device. Nothing to wire up:
+
+```ts
+new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: 'video-123',   // pass an id and resume position is remembered too
+});
+```
+
+Preferences go to `localStorage` under `sweet-player:prefs`, resume position under `sweet-player:progress:<id>`. Set `persist: false` to turn preferences off; omit `id` to turn resume off.
+
+### Cross-device sync — your backend, two callbacks
+
+`localStorage` is per-browser: resume position saved on a phone won't show up on a laptop. When you need that, route the state through your own backend instead.
+
+Pass `onSavePrefs` / `onSaveProgress` and the player stops touching `localStorage` for whichever one you provide. Fetch the saved state yourself and hand it over with `player.restore()`:
+
+```ts
+const player = new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: 'video-123',
+
+  // Called for you at the right moments — already throttled
+  onSavePrefs: (prefs) => api.savePrefs(prefs),                  // { volume, muted, rate }
+  onSaveProgress: (id, seconds) => api.saveProgress(id, seconds), // seconds === null → finished, clear it
+});
+
+// Call whenever your data arrives — before or after metadata loads, both work
+const saved = await api.load('video-123');
+player.restore(saved);   // { volume: 80, muted: false, rate: 1.5, time: 220 }
+```
+
+You write the two callbacks and one `restore()` call. The player handles the rest:
+
+| Concern | Handled by the player |
+|---|---|
+| When to save preferences | On volume/mute/rate change, debounced 800 ms — dragging the volume slider fires one write, not fifty |
+| When to save progress | Every 5 s while playing, on pause, and on `destroy()` |
+| Finished videos | Passes `seconds: null` when within 10 s of the end, so you can delete the row |
+| Slow networks | One write in flight at a time; newer values queue and go out after |
+| Failures | Logged and swallowed — a failed save never interrupts playback |
+| `restore()` timing | Seeks immediately if metadata is ready, otherwise waits for `loadedmetadata` |
+
+### Choosing per visitor
+
+The two modes are picked by whether the callback is present, so you can decide at runtime. A signed-in visitor is the usual case for wanting sync — but the rule is just "callback or not":
+
+```ts
+const useBackend = !!user;   // or any condition of yours
+
+const player = new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: videoId,
+  onSavePrefs: useBackend ? (p) => api.savePrefs(p) : undefined,
+  onSaveProgress: useBackend ? (id, s) => api.saveProgress(id, s) : undefined,
+});
+
+if (useBackend) {
+  player.restore(await api.load(videoId));
+}
+```
+
+Pass `undefined` and that half falls back to `localStorage` automatically — no extra branch needed. The two are independent, so syncing progress to your backend while leaving preferences in `localStorage` is fine.
+
+### Closing the tab
+
+`destroy()` flushes any pending writes, but a browser may kill an in-flight `fetch` during unload. For a last-moment save use `sendBeacon`:
+
+```ts
+window.addEventListener('pagehide', () => {
+  navigator.sendBeacon('/api/progress', JSON.stringify({
+    id: videoId,
+    seconds: player.video.currentTime,
+  }));
+});
+```
 
 ## Fullscreen — browser vs. web
 

@@ -16,4 +16,6 @@ export type {
   LongSeekOptions,
   PlayerEventMap,
   PlayerEventName,
+  PlayerPrefs,
+  RestoreState,
 } from './types';

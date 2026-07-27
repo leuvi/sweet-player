@@ -99,6 +99,8 @@ const player = new SweetPlayer({
   onNext: () => {},
   onQualityChange: (q) => {},
   onAudioTrackChange: (t) => {},
+  onSavePrefs: (prefs) => {},          // 存到自己后端，不再写 localStorage
+  onSaveProgress: (id, seconds) => {}, // seconds 为 null 表示已看完，清掉记录
 });
 ```
 
@@ -123,6 +125,7 @@ const player = new SweetPlayer({
 | `toggleWebFullscreen()` | 进入 / 退出**网页全屏**——纯 CSS 撑满视口，iframe 嵌入不需 `allow="fullscreen"` |
 | `togglePip()` | 进入 / 退出画中画 |
 | `setLoop(loop)` | 切换循环播放。开启后浏览器不触发 `ended`，`autoNext` 与依赖 `ended` 的插件均不激活 |
+| `restore(state)` | 套用已保存的 `{ volume?, muted?, rate?, time? }`。媒体未就绪时会自动等到可 seek 再跳，随时可调。详见[持久化](#持久化) |
 | `screenshot()` | 截取当前画面，优先复制剪贴板，否则下载 |
 | `load(src)` | 加载新的播放源，无需重建播放器 |
 | `setTitle(title)` | 更新左上角标题 |
@@ -448,6 +451,92 @@ new SweetPlayer({ ..., hiddenControls: ['ratio', 'audioTrack', 'pip'] });
 | `title` | 左上角标题 |
 | `progress` | 整条进度条（同时禁用热度曲线与预览图） |
 | `contextMenu` | 自定义右键菜单 |
+
+## 持久化
+
+会被记住的有两类：**偏好**（音量、静音、倍速——全局共享，与具体视频无关）和**播放进度**（按 `id` 选项区分，每个视频独立）。
+
+### 默认——存本地，零配置
+
+只要状态在同一台设备上刷新后还在就够用，这就是默认行为，不用接任何接口：
+
+```ts
+new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: 'video-123',   // 传了 id 才会记进度
+});
+```
+
+偏好存在 `localStorage` 的 `sweet-player:prefs`，进度存在 `sweet-player:progress:<id>`。不想记偏好就 `persist: false`，不想记进度就不传 `id`。
+
+### 需要多端同步——存自己后端，两个回调
+
+`localStorage` 是分浏览器的：手机上看到一半的进度，换电脑打开就没了。需要跨端时，把状态改走自己的后端。
+
+传了 `onSavePrefs` / `onSaveProgress`，对应那一项就不再写 `localStorage`。数据你自己从后端取，取到后交给 `player.restore()`：
+
+```ts
+const player = new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: 'video-123',
+
+  // 库在该存的时候自动调用，已经节流好了
+  onSavePrefs: (prefs) => api.savePrefs(prefs),                   // { volume, muted, rate }
+  onSaveProgress: (id, seconds) => api.saveProgress(id, seconds), // seconds 为 null 表示看完了，清掉
+});
+
+// 数据什么时候到就什么时候调，metadata 还没加载完也没关系
+const saved = await api.load('video-123');
+player.restore(saved);   // { volume: 80, muted: false, rate: 1.5, time: 220 }
+```
+
+你只写两个回调和一次 `restore()`，其余都由播放器处理：
+
+| 事项 | 播放器已处理 |
+|---|---|
+| 何时存偏好 | 音量/静音/倍速变化时，防抖 800ms——拖动音量条只发一次请求，不是几十次 |
+| 何时存进度 | 播放中每 5 秒、暂停时、`destroy()` 时 |
+| 视频看完 | 距结尾 10 秒内传 `seconds: null`，你据此删掉记录 |
+| 慢网络 | 同一时刻只有一个写请求在途，新值排队等前一个回来再发 |
+| 请求失败 | 记日志后静默，不打断播放 |
+| `restore()` 时机 | metadata 已就绪立即 seek，否则自动等 `loadedmetadata` |
+
+### 按需选择
+
+走哪种模式只看有没有传回调，所以可以运行时决定。「用户已登录」通常是需要同步的场景，但判断依据仅仅是传不传回调：
+
+```ts
+const useBackend = !!user;   // 或你自己的任何条件
+
+const player = new SweetPlayer({
+  container: '#player',
+  src: '...',
+  id: videoId,
+  onSavePrefs: useBackend ? (p) => api.savePrefs(p) : undefined,
+  onSaveProgress: useBackend ? (id, s) => api.saveProgress(id, s) : undefined,
+});
+
+if (useBackend) {
+  player.restore(await api.load(videoId));
+}
+```
+
+传 `undefined` 那一项就自动回落到 `localStorage`，不用额外写分支。两者互相独立，只把进度同步到后端、偏好继续留在 `localStorage` 也可以。
+
+### 关闭页面
+
+`destroy()` 会把待写的数据立即写掉，但页面卸载时浏览器可能掐断在途的 `fetch`。最后一刻的保存建议用 `sendBeacon`：
+
+```ts
+window.addEventListener('pagehide', () => {
+  navigator.sendBeacon('/api/progress', JSON.stringify({
+    id: videoId,
+    seconds: player.video.currentTime,
+  }));
+});
+```
 
 ## 全屏——浏览器全屏 vs 网页全屏
 
