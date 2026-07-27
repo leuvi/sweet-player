@@ -69,6 +69,10 @@ player.destroy();
 - **Context menu**: Custom right-click menu with changelog (current version, links to npm), video info (YouTube-style stats panel), shortcuts panel, screenshot
 - **Hide controls**: `hiddenControls: ['ratio', 'audioTrack', ...]` to hide specific features (UI only, API and shortcuts unaffected)
 
+## Scope
+
+Built for **on-demand video**. **DRM / encrypted playback and live streaming are deliberately out of scope and unsupported** — for those, use [Shaka Player](https://github.com/shaka-project/shaka-player) or [Video.js](https://videojs.com/). A live source will play, but the progress bar stays at 0% and the duration reads `0:00`, since the UI assumes a fixed, known length. Issues and feature requests in this area won't be worked on.
+
 ## Quality / Audio Tracks
 
 - **Auto mode (default)**: HLS / DASH multi-level quality/audio tracks auto-populate menus. Selecting "Auto" lets the underlying engine's ABR decide.

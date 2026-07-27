@@ -12,6 +12,21 @@ A custom video player supporting HLS (hls.js) and MPEG-DASH (dashjs). Zero frame
 
 **Live Demo: [player.sweetui.com](https://player.sweetui.com)**
 
+## Scope
+
+Sweet Player is built for **on-demand video**. Two things are deliberately out of scope:
+
+| | Status | If you need it |
+|---|---|---|
+| **DRM / encrypted playback** | Not supported | [Shaka Player](https://github.com/shaka-project/shaka-player) — Widevine / PlayReady / FairPlay out of the box |
+| **Live streaming** | Not supported | [Video.js](https://videojs.com/) with a live plugin, or Shaka Player |
+
+These aren't gaps waiting to be filled — supporting them properly means EME plus per-platform licence handling for DRM, and a DVR window, low-latency tuning and completely different progress-bar semantics for live. Both would roughly double the surface area of a player whose point is to stay small.
+
+Nothing stops you from pointing the player at a live or encrypted source — `hlsConfig` / `dashConfig` pass straight through to the underlying engines, which do have the capability. It will play. But the layer above is not adapted for it: the progress bar sits at 0% and the duration reads `0:00`, because the UI assumes a known, fixed length.
+
+**That path is unsupported.** Issues and feature requests about live or DRM playback won't be worked on — this is a scope decision, not a backlog item.
+
 ## Install
 
 ```bash

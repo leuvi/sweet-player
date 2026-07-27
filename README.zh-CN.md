@@ -12,6 +12,21 @@
 
 **在线 Demo：[player.sweetui.com](https://player.sweetui.com)**
 
+## 适用范围
+
+Sweet Player 面向**点播**场景。有两件事是明确不做的：
+
+| | 状态 | 需要的话用什么 |
+|---|---|---|
+| **DRM / 加密播放** | 不支持 | [Shaka Player](https://github.com/shaka-project/shaka-player)，开箱支持 Widevine / PlayReady / FairPlay |
+| **直播** | 不支持 | [Video.js](https://videojs.com/) 配直播插件，或 Shaka Player |
+
+这不是「还没做」，而是不打算做——认真支持 DRM 意味着 EME 加各平台的授权处理，直播则需要 DVR 窗口、低延迟调优，以及和点播完全不同的进度条语义。任何一个做下来，都会让这个以「小」为目标的播放器体量翻倍。
+
+你当然可以把直播源或加密源丢给播放器——`hlsConfig` / `dashConfig` 会原样透传给底层引擎，而引擎本身是有这个能力的，画面也能出来。但上层没有做任何适配：进度条会一直停在 0%、总时长显示 `0:00`，因为 UI 是按「时长已知且固定」设计的。
+
+**这条路不受支持。** 直播与 DRM 相关的问题反馈和需求不会处理——这是范围上的取舍，不是待办事项。
+
 ## 安装
 
 ```bash
