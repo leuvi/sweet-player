@@ -106,6 +106,7 @@ const player = new SweetPlayer({
   heatmap: [{ time: 5, value: 88 }], // Most-replayed curve above the progress bar (values auto-normalized)
   poster: '/poster.webp',        // Cover image shown before playback starts
   thumbnails: '/thumbs.vtt',     // WebVTT thumbnail track for progress-bar hover preview
+  shareUrl: 'https://…',         // URL copied by the "Copy video URL" menu item (default: location.href)
   hlsConfig: {},                 // Passed through to `new Hls(config)` for .m3u8 sources
   dashConfig: {},                // Passed through to dashjs `updateSettings` for .mpd sources
   hiddenControls: ['ratio'],     // Hide specific UI controls, all shown by default
@@ -142,6 +143,7 @@ const player = new SweetPlayer({
 | `setLoop(loop)` | Toggle loop playback. When on, the browser does not fire `ended`, so `autoNext` and plugins depending on `ended` won't trigger. |
 | `restore(state)` | Apply saved `{ volume?, muted?, rate?, time? }`. Safe to call before metadata loads — the seek waits. See [Persistence](#persistence). |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
+| `copyShareUrl()` | Copy the video URL (`shareUrl`, or `location.href`) to the clipboard. |
 | `load(src)` | Load a new source without recreating the player. |
 | `setTitle(title)` | Update the top-left title text. |
 | `use(plugin)` | Install a plugin at runtime; returns an uninstall function. |

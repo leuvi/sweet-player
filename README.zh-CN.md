@@ -106,6 +106,7 @@ const player = new SweetPlayer({
   heatmap: [{ time: 5, value: 88 }], // 进度条上方热度曲线（最多重播），value 自动归一化
   poster: '/poster.webp',        // 播放开始前显示的封面图
   thumbnails: '/thumbs.vtt',     // 进度条悬停预览图的 WebVTT 地址
+  shareUrl: 'https://…',         // "复制视频地址"菜单项复制的链接（默认 location.href）
   hlsConfig: {},                 // 透传给 `new Hls(config)`（.m3u8 源生效）
   dashConfig: {},                // 透传给 dashjs 的 `updateSettings`（.mpd 源生效）
   hiddenControls: ['ratio'],     // 不显示的功能，默认全显示
@@ -142,6 +143,7 @@ const player = new SweetPlayer({
 | `setLoop(loop)` | 切换循环播放。开启后浏览器不触发 `ended`，`autoNext` 与依赖 `ended` 的插件均不激活 |
 | `restore(state)` | 套用已保存的 `{ volume?, muted?, rate?, time? }`。媒体未就绪时会自动等到可 seek 再跳，随时可调。详见[持久化](#持久化) |
 | `screenshot()` | 截取当前画面，优先复制剪贴板，否则下载 |
+| `copyShareUrl()` | 复制视频地址（`shareUrl`，缺省为 `location.href`）到剪贴板 |
 | `load(src)` | 加载新的播放源，无需重建播放器 |
 | `setTitle(title)` | 更新左上角标题 |
 | `use(plugin)` | 运行时安装插件，返回卸载函数 |
