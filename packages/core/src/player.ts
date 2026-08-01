@@ -153,6 +153,10 @@ export class SweetPlayer {
           onClick: () => this.screenshot(),
         },
         {
+          label: this.i18n.t('copyUrl'),
+          onClick: () => void this.copyShareUrl(),
+        },
+        {
           label: this.i18n.t('videoInfo'),
           onClick: () => this.stats.toggle(),
         },
@@ -448,6 +452,19 @@ export class SweetPlayer {
     } catch (err) {
       log('截图', `失败: ${String(err)}`);
       this.osd.flash(this.i18n.t('screenshotFailed'));
+    }
+  }
+
+  /** 复制视频地址到剪贴板：默认复制当前页面地址，可用 `shareUrl` 选项覆盖 */
+  async copyShareUrl(): Promise<void> {
+    const url = this.options.shareUrl ?? (typeof location !== 'undefined' ? location.href : '');
+    try {
+      if (!url || !navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+      await navigator.clipboard.writeText(url);
+      this.osd.flash(this.i18n.t('urlCopied'));
+    } catch (err) {
+      log('复制视频地址', `失败: ${String(err)}`);
+      this.osd.flash(this.i18n.t('urlCopyFailed'));
     }
   }
 

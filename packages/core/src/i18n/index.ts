@@ -47,6 +47,9 @@ export interface LocaleStrings {
   screenshotCopied: string;
   screenshotSaved: string;
   screenshotFailed: string;
+  copyUrl: string;
+  urlCopied: string;
+  urlCopyFailed: string;
   copyLog: string;
   logCopied: string;
 }
@@ -100,6 +103,9 @@ const zhCN: LocaleStrings = {
   screenshotCopied: '截图已复制到剪贴板',
   screenshotSaved: '截图已保存',
   screenshotFailed: '截图失败',
+  copyUrl: '复制视频地址',
+  urlCopied: '视频地址已复制',
+  urlCopyFailed: '复制失败',
   copyLog: '复制日志',
   logCopied: '已复制',
 };
@@ -153,6 +159,9 @@ const en: LocaleStrings = {
   screenshotCopied: 'Screenshot copied to clipboard',
   screenshotSaved: 'Screenshot saved',
   screenshotFailed: 'Screenshot failed',
+  copyUrl: 'Copy video URL',
+  urlCopied: 'Video URL copied',
+  urlCopyFailed: 'Copy failed',
   copyLog: 'Copy log',
   logCopied: 'Copied',
 };

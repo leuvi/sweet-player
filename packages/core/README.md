@@ -262,6 +262,14 @@ sprite.jpg#xywh=160,0,160,90
 
 Image URLs in the VTT are resolved relative to the VTT file's own URL. To disable it entirely, add `'thumbnails'` to `hiddenControls`.
 
+## Copy Video URL
+
+The right-click menu's **Copy video URL** item copies a link to the clipboard and flashes a confirmation, like taking a screenshot. It copies the current page URL (`location.href`) by default; pass `shareUrl` to copy a custom link, or call `player.copyShareUrl()` yourself:
+
+```ts
+new SweetPlayer({ container: '#player', src, shareUrl: 'https://example.com/watch?v=123' });
+```
+
 ## Instance API
 
 ### Methods
@@ -285,6 +293,7 @@ Image URLs in the VTT are resolved relative to the VTT file's own URL. To disabl
 | `setLoop(loop)` | Toggle loop playback. When on, the browser does not fire `ended`, so `autoNext` and plugins depending on `ended` won't trigger. |
 | `restore(state)` | Apply saved `{ volume?, muted?, rate?, time? }`. Safe to call before metadata loads — the seek waits. |
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
+| `copyShareUrl()` | Copy the video URL (`shareUrl`, or `location.href`) to the clipboard. |
 | `load(src)` | Load a new source without recreating the player. |
 | `setTitle(title)` | Update the top-left title text. |
 | `use(plugin)` | Install a plugin at runtime; returns an uninstall function. |

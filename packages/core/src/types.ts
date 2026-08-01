@@ -128,6 +128,8 @@ export interface SweetPlayerOptions {
   heatmap?: HeatmapPoint[];
   /** 封面图地址，播放开始前显示 */
   poster?: string;
+  /** 右键菜单"复制视频地址"要复制的链接，默认复制当前页面地址（location.href） */
+  shareUrl?: string;
   /** 进度条悬停缩略图预览的 WebVTT 地址（cue payload 为雪碧图 URL + #xywh=x,y,w,h） */
   thumbnails?: string;
   /**

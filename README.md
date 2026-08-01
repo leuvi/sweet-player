@@ -432,6 +432,16 @@ sprite.jpg#xywh=160,0,160,90
 
 Image URLs in the VTT are resolved relative to the VTT file's own URL. To disable it entirely, add `'thumbnails'` to `hiddenControls`.
 
+## Copy Video URL
+
+The right-click menu has a **Copy video URL** item that copies a link to the clipboard and flashes a confirmation, just like taking a screenshot. It copies the current page URL (`location.href`) by default; pass `shareUrl` to copy a custom link instead:
+
+```ts
+new SweetPlayer({ container: '#player', src, shareUrl: 'https://example.com/watch?v=123' });
+```
+
+You can also trigger it programmatically with `player.copyShareUrl()`.
+
 ## Hidden Controls
 
 `hiddenControls` hides specific UI features (all shown by default; only affects UI, not API or shortcuts):

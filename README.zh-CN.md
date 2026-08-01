@@ -432,6 +432,16 @@ sprite.jpg#xywh=160,0,160,90
 
 VTT 中的图片地址相对于 VTT 文件自身解析。若要彻底禁用，把 `'thumbnails'` 加入 `hiddenControls`。
 
+## 复制视频地址
+
+右键菜单里有一项**复制视频地址**，点击后把链接写入剪贴板并弹出提示反馈（和截图一样）。默认复制当前页面地址（`location.href`），传入 `shareUrl` 可复制自定义链接：
+
+```ts
+new SweetPlayer({ container: '#player', src, shareUrl: 'https://example.com/watch?v=123' });
+```
+
+也可以在代码里调用 `player.copyShareUrl()` 主动触发。
+
 ## 隐藏功能
 
 `hiddenControls` 收集不显示的功能（默认全显示，只影响 UI，不影响 API 与快捷键）：
