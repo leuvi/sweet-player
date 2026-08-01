@@ -1,5 +1,11 @@
 # @sweet-player/core
 
+## 1.5.0
+
+### Minor Changes
+
+- 3c0c468: feat(core): 右键菜单新增"复制视频地址"，默认复制当前页面地址，可用 `shareUrl` 选项覆盖，复制后有 OSD 通知反馈
+
 ## 1.4.0
 
 ### Minor Changes
