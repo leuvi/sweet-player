@@ -178,6 +178,11 @@ export interface SweetPlayerOptions {
   onAudioTrackChange?: (track: AudioTrackInfo) => void;
 }
 
+export type SweetPlayerCallbacks = Pick<
+  SweetPlayerOptions,
+  'onPrev' | 'onNext' | 'onQualityChange' | 'onAudioTrackChange' | 'onSavePrefs' | 'onSaveProgress'
+>;
+
 export interface PlayerEventMap {
   ready: void;
   play: void;

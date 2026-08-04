@@ -48,15 +48,27 @@ importers:
       '@types/react':
         specifier: ^19.0.0
         version: 19.2.17
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.17)
+      jsdom:
+        specifier: ^29.1.1
+        version: 29.1.1
       react:
         specifier: ^19.0.0
         version: 19.2.7
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.7(react@19.2.7)
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(jsdom@29.1.1)(vite@6.4.3)
 
   packages/vue:
     dependencies:
@@ -64,12 +76,18 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      jsdom:
+        specifier: ^29.1.1
+        version: 29.1.1
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.16)(typescript@5.9.3)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(jsdom@29.1.1)(vite@6.4.3)
       vue:
         specifier: ^3.5.13
         version: 3.5.39(typescript@5.9.3)
