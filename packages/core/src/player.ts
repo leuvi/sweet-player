@@ -29,6 +29,7 @@ import type {
   PlayerPrefs,
   QualityLevel,
   RestoreState,
+  SweetPlayerCallbacks,
   SweetPlayerOptions,
   SweetPlayerPlugin,
 } from './types';
@@ -280,7 +281,8 @@ export class SweetPlayer {
     this.controls.volume.update(Math.round(this.video.volume * 100), this.video.muted);
     this.controls.updateRate(this.video.playbackRate);
 
-    if (persist || remotePrefs) this.bindPersistence();
+    // 始终绑定轻量事件：persist 或远端回调可在运行时切换，实际写入时再决定目标。
+    this.bindPersistence();
     if (options.id) {
       this.progressId = options.id;
       this.bindProgressMemory(options.id);
@@ -529,17 +531,31 @@ export class SweetPlayer {
   /**
    * 切换视频 ID（断点续播的 key）。
    * 先保存旧视频的进度，再解绑旧的事件/定时器，最后用新 ID 重新绑定。
+   * 传 `null` 表示解除进度记忆（停止保存，也不恢复）。
    */
-  setId(id: string): void {
+  setId(id: string | null): void {
     if (this.progressId === id) return;
+    // 保存旧进度：必须在旧媒体还挂着时读取 currentTime，
+    // 换源（load）之后再调会读到新媒体/重置后的值，进度丢失
     this.saveProgressNow();
     this.progressQueue?.flush();
     this.progressCleanup?.();
     this.progressCleanup = null;
     this.progressQueue = null;
     this.progressId = id;
-    this.options.id = id;
-    this.bindProgressMemory(id);
+    this.options.id = id ?? undefined;
+    if (id) this.bindProgressMemory(id);
+  }
+
+  /** 更新包装层可在运行时变化的回调，不重建播放器或重复绑定媒体事件。 */
+  setCallbacks(callbacks: SweetPlayerCallbacks): void {
+    this.options.onPrev = callbacks.onPrev;
+    this.options.onNext = callbacks.onNext;
+    this.options.onQualityChange = callbacks.onQualityChange;
+    this.options.onAudioTrackChange = callbacks.onAudioTrackChange;
+    this.options.onSavePrefs = callbacks.onSavePrefs;
+    this.options.onSaveProgress = callbacks.onSaveProgress;
+    this.controls.updateNavigation(callbacks.onPrev, callbacks.onNext);
   }
 
   setTitle(title: string): void {
@@ -654,8 +670,12 @@ export class SweetPlayer {
   // ---------- 内部：持久化 ----------
 
   private bindPersistence(): void {
-    // 有 onSavePrefs 走业务方回调，否则回落到 localStorage。两条路径共用同一个节流队列。
-    const write = this.options.onSavePrefs ?? ((p: PlayerPrefs) => savePrefs(p));
+    // 每次发送时读取当前回调，支持包装层在运行时切换远端/本地持久化。
+    const write = (prefs: PlayerPrefs): void | Promise<void> => {
+      const onSavePrefs = this.options.onSavePrefs;
+      if (onSavePrefs) return onSavePrefs(prefs);
+      if (this.options.persist !== false) savePrefs(prefs);
+    };
     this.prefsQueue = createSaveQueue<PlayerPrefs>(write, PREFS_SAVE_DEBOUNCE, '偏好');
 
     const onVolume = () =>
@@ -671,23 +691,24 @@ export class SweetPlayer {
   }
 
   private bindProgressMemory(id: string): void {
-    const onSaveProgress = this.options.onSaveProgress;
     // 两条路径共用队列：seek 连点时合并写入，pause / pagehide / destroy 时 flush 立即落盘
-    const write = onSaveProgress
-      ? (seconds: number | null) => onSaveProgress(id, seconds)
-      : (seconds: number | null) => (seconds === null ? clearProgress(id) : saveProgress(id, seconds));
+    const write = (seconds: number | null): void | Promise<void> => {
+      const onSaveProgress = this.options.onSaveProgress;
+      if (onSaveProgress) return onSaveProgress(id, seconds);
+      if (seconds === null) clearProgress(id);
+      else saveProgress(id, seconds);
+    };
     this.progressQueue = createSaveQueue<number | null>(write, PROGRESS_SAVE_DEBOUNCE, '进度');
 
     // 业务方自管进度时只负责写，读由业务方拿到数据后调 restore()
-    if (!onSaveProgress) {
-      const restore = () => {
-        const saved = loadProgress(id);
-        if (saved !== null && saved > 3 && saved < this.video.duration - PROGRESS_END_GUARD) {
-          this.video.currentTime = saved;
-        }
-      };
-      this.video.addEventListener('loadedmetadata', restore, { once: true });
-    }
+    const restore = () => {
+      if (this.options.onSaveProgress) return;
+      const saved = loadProgress(id);
+      if (saved !== null && saved > 3 && saved < this.video.duration - PROGRESS_END_GUARD) {
+        this.video.currentTime = saved;
+      }
+    };
+    this.video.addEventListener('loadedmetadata', restore, { once: true });
 
     this.progressTimer = setInterval(() => {
       if (!this.video.paused) this.saveProgressNow();
@@ -705,6 +726,9 @@ export class SweetPlayer {
     window.addEventListener('pagehide', onPageHide);
 
     this.progressCleanup = () => {
+      // restore 是 { once: true }，未触发时 removeEventListener 同样有效；
+      // 必须移除，否则换集后旧 id 的 restore 会在新源的 loadedmetadata 上误 seek
+      this.video.removeEventListener('loadedmetadata', restore);
       this.video.removeEventListener('seeked', onSeeked);
       window.removeEventListener('pagehide', onPageHide);
       if (this.progressTimer) {

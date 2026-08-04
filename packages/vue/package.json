@@ -19,6 +19,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "tsup",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
@@ -42,8 +43,10 @@
     "vue": "^3.0.0"
   },
   "devDependencies": {
+    "jsdom": "^29.1.1",
     "tsup": "^8.3.5",
     "typescript": "^5.7.2",
+    "vitest": "^4.1.10",
     "vue": "^3.5.13"
   }
 }

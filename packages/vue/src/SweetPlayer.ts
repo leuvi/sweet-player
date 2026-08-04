@@ -1,8 +1,10 @@
 import {
   defineComponent,
+  getCurrentInstance,
   h,
   onBeforeUnmount,
   onMounted,
+  onUpdated,
   ref,
   shallowRef,
   watch,
@@ -67,8 +69,28 @@ export const SweetPlayer = defineComponent({
     'error',
   ],
   setup(props, { emit, expose }) {
+    const instance = getCurrentInstance();
     const containerRef = ref<HTMLDivElement>();
     const player = shallowRef<CorePlayer | null>(null);
+    const emitPrev = () => emit('prev');
+    const emitNext = () => emit('next');
+    const emitQualityChange = (quality: QualityLevel) => emit('quality-change', quality);
+    const emitAudioTrackChange = (track: AudioTrackInfo) => emit('audio-track-change', track);
+    const hasListener = (name: 'onPrev' | 'onNext') => {
+      const vnodeProps = instance?.vnode.props;
+      return vnodeProps?.[name] != null || vnodeProps?.[`${name}Once`] != null;
+    };
+
+    const syncCallbacks = () => {
+      player.value?.setCallbacks({
+        onPrev: hasListener('onPrev') ? emitPrev : undefined,
+        onNext: hasListener('onNext') ? emitNext : undefined,
+        onQualityChange: emitQualityChange,
+        onAudioTrackChange: emitAudioTrackChange,
+        onSavePrefs: props.onSavePrefs,
+        onSaveProgress: props.onSaveProgress,
+      });
+    };
 
     onMounted(() => {
       if (!containerRef.value) return;
@@ -102,10 +124,10 @@ export const SweetPlayer = defineComponent({
         dashConfig: props.dashConfig,
         onSavePrefs: props.onSavePrefs,
         onSaveProgress: props.onSaveProgress,
-        onPrev: () => emit('prev'),
-        onNext: () => emit('next'),
-        onQualityChange: (q) => emit('quality-change', q),
-        onAudioTrackChange: (t) => emit('audio-track-change', t),
+        ...(hasListener('onPrev') && { onPrev: emitPrev }),
+        ...(hasListener('onNext') && { onNext: emitNext }),
+        onQualityChange: emitQualityChange,
+        onAudioTrackChange: emitAudioTrackChange,
       });
       // 桥接核心播放事件到 Vue emits
       p.on('play', () => emit('play'));
@@ -119,6 +141,19 @@ export const SweetPlayer = defineComponent({
       emit('ready', p);
     });
 
+    watch([() => props.onSavePrefs, () => props.onSaveProgress], syncCallbacks);
+    // 父组件的其他更新也可能同时增删事件监听器；此时刷新导航按钮状态。
+    onUpdated(syncCallbacks);
+
+    // id 必须先于 src 更新：setId 保存旧进度依赖旧媒体 currentTime，
+    // 若先 load 换源，旧媒体被 detach/重置，进度会丢失
+    watch(
+      () => props.id,
+      (id) => {
+        if (player.value) player.value.setId(id ?? null);
+      },
+    );
+
     watch(
       () => props.src,
       (src) => {
@@ -129,13 +164,6 @@ export const SweetPlayer = defineComponent({
     watch(
       () => props.title,
       (title) => player.value?.setTitle(title ?? ''),
-    );
-
-    watch(
-      () => props.id,
-      (id) => {
-        if (id) player.value?.setId(id);
-      },
     );
 
     watch(

@@ -39,7 +39,7 @@ npm install @sweet-player/core
 | `@sweet-player/react` | React component wrapper |
 | `@sweet-player/vue` | Vue component wrapper |
 
-`hls.js` and `dashjs` are peer/optional dependencies loaded on demand: `.m3u8` sources pull in `hls.js`, `.mpd` sources pull in `dashjs`; any other source plays through the native `<video>`. Only the engine you actually use is downloaded.
+`hls.js` and `dashjs` are peer dependencies that npm installs automatically with `@sweet-player/core` — no extra setup needed. `.m3u8` sources use `hls.js`, `.mpd` sources use `dashjs`, and any other source plays through the native `<video>`.
 
 ## Quick Start
 
@@ -145,7 +145,9 @@ const player = new SweetPlayer({
 | `screenshot()` | Copy the current frame to the clipboard, or download it. |
 | `copyShareUrl()` | Copy the video URL (`shareUrl`, or `location.href`) to the clipboard. |
 | `load(src)` | Load a new source without recreating the player. |
+| `setId(id)` | Change the progress key; pass `null` to stop remembering position. |
 | `setTitle(title)` | Update the top-left title text. |
+| `setCallbacks(callbacks)` | Replace navigation, track-change, and persistence callbacks at runtime. |
 | `use(plugin)` | Install a plugin at runtime; returns an uninstall function. |
 | `addSettingsRow(section)` | Register a settings-panel row; returns a remove function. |
 | `addContextMenuItem(item, index?)` | Register a right-click menu item; returns a remove function. |

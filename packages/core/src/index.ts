@@ -6,6 +6,7 @@ export type { SettingsSection, SettingsItem } from './ui/components/settingsPane
 export type { ContextMenuItem } from './ui/components/contextMenu';
 export type {
   SweetPlayerOptions,
+  SweetPlayerCallbacks,
   SweetPlayerPlugin,
   SweetPlayerLike,
   QualityLevel,

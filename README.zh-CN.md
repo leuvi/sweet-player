@@ -39,7 +39,7 @@ npm install @sweet-player/core
 | `@sweet-player/react` | React 组件封装 |
 | `@sweet-player/vue` | Vue 组件封装 |
 
-`hls.js` 和 `dashjs` 按需加载：`.m3u8` 源自动引入 `hls.js`，`.mpd` 源自动引入 `dashjs`，其余源直接走原生 `<video>`。只有实际用到的引擎会下载。
+`hls.js` 和 `dashjs` 是随 `@sweet-player/core` 自动安装的 peer 依赖，无需额外配置：`.m3u8` 源使用 `hls.js`，`.mpd` 源使用 `dashjs`，其余源直接走原生 `<video>`。
 
 ## 快速开始
 
@@ -145,7 +145,9 @@ const player = new SweetPlayer({
 | `screenshot()` | 截取当前画面，优先复制剪贴板，否则下载 |
 | `copyShareUrl()` | 复制视频地址（`shareUrl`，缺省为 `location.href`）到剪贴板 |
 | `load(src)` | 加载新的播放源，无需重建播放器 |
+| `setId(id)` | 更换断点续播 key；传 `null` 停止记忆进度 |
 | `setTitle(title)` | 更新左上角标题 |
+| `setCallbacks(callbacks)` | 运行时替换导航、轨道切换与持久化回调 |
 | `use(plugin)` | 运行时安装插件，返回卸载函数 |
 | `addSettingsRow(section)` | 注册设置面板行，返回移除函数 |
 | `addContextMenuItem(item, index?)` | 注册右键菜单项，返回移除函数 |

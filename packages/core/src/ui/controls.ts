@@ -55,6 +55,7 @@ export interface Controls {
   updatePip(pip: boolean): void;
   updateLoop(loop: boolean): void;
   updateRatio(ratio: AspectRatio): void;
+  updateNavigation(onPrev?: () => void, onNext?: () => void): void;
   destroy(): void;
 }
 
@@ -94,11 +95,11 @@ export function createControls(ctx: ControlsContext): Controls {
   };
 
   // 左侧：上一个 | 快退 | 播放 | 快进 | 下一个 | 时间
-  button(icons.prev, i18n.t('prev'), () => actions.onPrev?.(), !actions.onPrev, show('prev'));
+  const prevBtn = button(icons.prev, i18n.t('prev'), () => actions.onPrev?.(), !actions.onPrev, show('prev'));
   button(icons.seekBack, i18n.t('seekBack', { n: ctx.seekStep }), () => actions.seekBy(-ctx.seekStep), false, show('seekBack'));
   const playBtn = button(icons.play, i18n.t('playPause'), actions.togglePlay, false, show('play'));
   button(icons.seekForward, i18n.t('seekForward', { n: ctx.seekStep }), () => actions.seekBy(ctx.seekStep), false, show('seekForward'));
-  button(icons.next, i18n.t('next'), () => actions.onNext?.(), !actions.onNext, show('next'));
+  const nextBtn = button(icons.next, i18n.t('next'), () => actions.onNext?.(), !actions.onNext, show('next'));
 
   const timeEl = createEl('span', {
     className: 'sp-time',
@@ -291,6 +292,12 @@ export function createControls(ctx: ControlsContext): Controls {
     updateRatio(ratio) {
       const label = ratio === 'original' ? i18n.t('ratioOriginal') : ratio;
       settingsPanel.updateSection('ratio', { activeValue: ratio, currentValue: label });
+    },
+    updateNavigation(onPrev, onNext) {
+      actions.onPrev = onPrev;
+      actions.onNext = onNext;
+      prevBtn.classList.toggle('sp-disabled', !onPrev);
+      nextBtn.classList.toggle('sp-disabled', !onNext);
     },
     destroy() {
       settingsPanel.destroy();
