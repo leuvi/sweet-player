@@ -85,6 +85,10 @@ export class SweetPlayer {
   /** 偏好 / 进度的节流写入队列；未传对应回调时为 null（走 localStorage 或完全不存） */
   private prefsQueue: ReturnType<typeof createSaveQueue<PlayerPrefs>> | null = null;
   private progressQueue: ReturnType<typeof createSaveQueue<number | null>> | null = null;
+  /** 当前进度记忆的视频 ID；setId 时切换 */
+  private progressId: string | null = null;
+  /** 进度记忆的清理函数；setId / destroy 时调用 */
+  private progressCleanup: (() => void) | null = null;
   private disposers: Array<() => void> = [];
   private pluginCleanups: Array<() => void> = [];
   private destroyed = false;
@@ -277,7 +281,10 @@ export class SweetPlayer {
     this.controls.updateRate(this.video.playbackRate);
 
     if (persist || remotePrefs) this.bindPersistence();
-    if (options.id) this.bindProgressMemory(options.id);
+    if (options.id) {
+      this.progressId = options.id;
+      this.bindProgressMemory(options.id);
+    }
 
     options.plugins?.forEach((p) => this.use(p));
   }
@@ -507,7 +514,32 @@ export class SweetPlayer {
   load(src: string): void {
     this.state.hideEnded();
     this.state.hideError();
+    // 换源后旧引擎的画质/音轨菜单不再适用，清空避免残留
+    if (this.engineManagedQuality) {
+      this.engineManagedQuality = false;
+      this.controls.qualityMenu.setItems([]);
+    }
+    if (this.engineManagedAudio) {
+      this.engineManagedAudio = false;
+      this.controls.audioMenu.setItems([]);
+    }
     this.media.load(src);
+  }
+
+  /**
+   * 切换视频 ID（断点续播的 key）。
+   * 先保存旧视频的进度，再解绑旧的事件/定时器，最后用新 ID 重新绑定。
+   */
+  setId(id: string): void {
+    if (this.progressId === id) return;
+    this.saveProgressNow();
+    this.progressQueue?.flush();
+    this.progressCleanup?.();
+    this.progressCleanup = null;
+    this.progressQueue = null;
+    this.progressId = id;
+    this.options.id = id;
+    this.bindProgressMemory(id);
   }
 
   setTitle(title: string): void {
@@ -556,7 +588,8 @@ export class SweetPlayer {
     this.saveProgressNow();
     this.progressQueue?.flush(); // 队列是异步的，销毁前立即写掉
     this.emitter.emit('destroy', undefined);
-    this.pluginCleanups.forEach((d) => d());
+    // 复制后遍历：dispose 内部会 splice 原数组，直接 forEach 会跳过一半
+    [...this.pluginCleanups].forEach((d) => d());
     // 销毁前保证网页全屏被解除，避免残留 body class 与 escape listener
     if (this.webFullscreen) this.exitWebFullscreen();
     this.keyboard.destroy();
@@ -569,10 +602,10 @@ export class SweetPlayer {
     this.tapFlash.destroy();
     // 清理可能悬挂的 restore listener（load 失败 / metadata 未到时）
     this.restoreAbort?.abort();
+    this.progressCleanup?.();
     this.disposers.forEach((d) => d());
     if (this.hideTimer) clearTimeout(this.hideTimer);
     if (this.clickTimer) clearTimeout(this.clickTimer);
-    if (this.progressTimer) clearInterval(this.progressTimer);
     this.media.destroy();
     this.emitter.removeAll();
     this.container.remove();
@@ -671,14 +704,19 @@ export class SweetPlayer {
     };
     window.addEventListener('pagehide', onPageHide);
 
-    this.disposers.push(() => {
+    this.progressCleanup = () => {
       this.video.removeEventListener('seeked', onSeeked);
       window.removeEventListener('pagehide', onPageHide);
-    });
+      if (this.progressTimer) {
+        clearInterval(this.progressTimer);
+        this.progressTimer = null;
+      }
+      this.progressQueue = null;
+    };
   }
 
   private saveProgressNow(): void {
-    if (!this.options.id || !this.video.duration) return;
+    if (!this.progressId || !this.video.duration) return;
     const ended = this.video.currentTime >= this.video.duration - PROGRESS_END_GUARD;
     if (!ended && this.video.currentTime <= 3) return; // 刚开头，没必要记
     this.progressQueue?.push(ended ? null : this.video.currentTime);

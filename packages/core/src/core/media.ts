@@ -72,6 +72,30 @@ export class MediaController {
         return;
       }
       void (async () => {
+        // 先检测原生 HLS 支持（Safari），这样即使 hls.js 未安装也能播放
+        if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
+          try {
+            const [{ createHlsEngine }, { default: Hls }] = await Promise.all([
+              import('./engines/hlsEngine'),
+              import('hls.js'),
+            ]);
+            if (seq !== this.loadSeq) return;
+            if (Hls.isSupported()) {
+              this.engine = createHlsEngine(this.video, src, engineCallbacks, this.hlsConfig);
+              return;
+            }
+          } catch {
+            // hls.js 未安装或加载失败——但浏览器原生支持 HLS，降级使用
+            if (seq !== this.loadSeq) return;
+            log('hls事件', 'hls.js 不可用，降级原生 HLS');
+          }
+          // 走原生 HLS
+          if (seq !== this.loadSeq) return;
+          this.nativeHlsOnly = true;
+          this.video.src = src;
+          return;
+        }
+        // 浏览器不支持原生 HLS，必须依赖 hls.js
         try {
           const [{ createHlsEngine }, { default: Hls }] = await Promise.all([
             import('./engines/hlsEngine'),
@@ -80,11 +104,6 @@ export class MediaController {
           if (seq !== this.loadSeq) return;
           if (Hls.isSupported()) {
             this.engine = createHlsEngine(this.video, src, engineCallbacks, this.hlsConfig);
-            return;
-          }
-          if (this.video.canPlayType('application/vnd.apple.mpegurl')) {
-            this.nativeHlsOnly = true;
-            this.video.src = src;
             return;
           }
           this.emitter.emit('error', { type: 'hls-unsupported' });

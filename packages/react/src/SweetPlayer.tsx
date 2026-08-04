@@ -18,7 +18,9 @@ export const SweetPlayer = forwardRef<CorePlayer | null, SweetPlayerProps>(funct
   const optionsRef = useRef({ ...options, src, onReady });
   optionsRef.current = { ...options, src, onReady };
 
-  useImperativeHandle(ref, () => playerRef.current as CorePlayer, []);
+  // useImperativeHandle 的 factory 在 commit 阶段执行，早于创建 player 的 useEffect。
+  // 因此直接返回 ref.current——它会在 effect 中被赋值，父组件通过 ref.current 拿到实例。
+  useImperativeHandle(ref, () => playerRef.current as CorePlayer);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -42,6 +44,10 @@ export const SweetPlayer = forwardRef<CorePlayer | null, SweetPlayerProps>(funct
   useEffect(() => {
     playerRef.current?.setTitle(options.title ?? '');
   }, [options.title]);
+
+  useEffect(() => {
+    if (options.id) playerRef.current?.setId(options.id);
+  }, [options.id]);
 
   return <div ref={containerRef} className={className} style={{ width: '100%', height: '100%', ...style }} />;
 });

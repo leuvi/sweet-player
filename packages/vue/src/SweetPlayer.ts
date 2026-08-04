@@ -15,6 +15,7 @@ import {
   type ControlName,
   type HeatmapPoint,
   type LongSeekOptions,
+  type PlayerPrefs,
   type QualityLevel,
   type SweetPlayerPlugin,
 } from '@sweet-player/core';
@@ -37,6 +38,8 @@ export const SweetPlayer = defineComponent({
     heatmap: Array as PropType<HeatmapPoint[]>,
     poster: String,
     thumbnails: String,
+    shareUrl: String,
+    loop: Boolean,
     autoQuality: { type: Boolean, default: true },
     persist: { type: Boolean, default: true },
     autoNext: [Boolean, Number] as PropType<boolean | number>,
@@ -46,6 +49,8 @@ export const SweetPlayer = defineComponent({
     plugins: Array as PropType<SweetPlayerPlugin[]>,
     hlsConfig: Object as PropType<Record<string, unknown>>,
     dashConfig: Object as PropType<Record<string, unknown>>,
+    onSavePrefs: Function as PropType<(prefs: PlayerPrefs) => void | Promise<void>>,
+    onSaveProgress: Function as PropType<(id: string, seconds: number | null) => void | Promise<void>>,
   },
   emits: [
     'ready',
@@ -84,6 +89,8 @@ export const SweetPlayer = defineComponent({
         heatmap: props.heatmap,
         poster: props.poster,
         thumbnails: props.thumbnails,
+        shareUrl: props.shareUrl,
+        loop: props.loop,
         autoQuality: props.autoQuality,
         persist: props.persist,
         autoNext: props.autoNext,
@@ -93,6 +100,8 @@ export const SweetPlayer = defineComponent({
         plugins: props.plugins,
         hlsConfig: props.hlsConfig,
         dashConfig: props.dashConfig,
+        onSavePrefs: props.onSavePrefs,
+        onSaveProgress: props.onSaveProgress,
         onPrev: () => emit('prev'),
         onNext: () => emit('next'),
         onQualityChange: (q) => emit('quality-change', q),
@@ -120,6 +129,13 @@ export const SweetPlayer = defineComponent({
     watch(
       () => props.title,
       (title) => player.value?.setTitle(title ?? ''),
+    );
+
+    watch(
+      () => props.id,
+      (id) => {
+        if (id) player.value?.setId(id);
+      },
     );
 
     watch(
